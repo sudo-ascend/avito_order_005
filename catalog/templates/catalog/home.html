@@ -1,0 +1,251 @@
+{% extends "catalog/base.html" %}
+{% load static %}
+
+{% block content %}
+  <main id="top">
+    <section class="hero section-observe" aria-labelledby="hero-title">
+      <picture class="hero__media">
+        <source srcset="{% static 'hero-aquarium.avif' %}" type="image/avif" />
+        <img
+          src="{% static 'hero-aquarium.webp' %}"
+          alt="Густой растительный аквариум с живыми аквариумными растениями {{ config.brand_name }}"
+          width="1920"
+          height="1080"
+          fetchpriority="high"
+        />
+      </picture>
+      <div class="hero__overlay"></div>
+      <div class="container hero__content">
+        <p class="eyebrow">{{ config.hero_eyebrow }}</p>
+        <h1 id="hero-title">{{ config.hero_title }}</h1>
+        <p class="hero__lead">{{ config.hero_lead }}</p>
+        <div class="hero__buttons">
+          <a class="button button--primary" href="#contacts">{{ config.hero_primary_button_text }}</a>
+          <a class="button button--secondary" href="#plants">{{ config.hero_secondary_button_text }}</a>
+        </div>
+        <div class="hero__features" aria-label="Краткие преимущества">
+          <span>{{ config.hero_feature_1 }}</span>
+          <span>{{ config.hero_feature_2 }}</span>
+          <span>{{ config.hero_feature_3 }}</span>
+          <span>{{ config.hero_feature_4 }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--light about section-observe" id="about" aria-labelledby="about-title">
+      <div class="container split">
+        <div class="section-copy">
+          <p class="eyebrow">{{ config.about_eyebrow }}</p>
+          <h2 id="about-title">{{ config.about_title }}</h2>
+          <p>{{ config.about_body_1 }}</p>
+          <p>{{ config.about_body_2 }}</p>
+        </div>
+        <div class="about-card">
+          <picture>
+            <source srcset="{% static 'feature-closeup.avif' %}" type="image/avif" />
+            <img
+              src="{% static 'feature-closeup.webp' %}"
+              alt="Крупный план живого аквариумного растения"
+              width="1000"
+              height="1100"
+              loading="lazy"
+            />
+          </picture>
+          <div class="about-card__panel">
+            <strong>{{ config.about_panel_title }}</strong>
+            <span>{{ config.about_panel_text }}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section advantages section-observe" id="advantages" aria-labelledby="advantages-title">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">{{ config.advantages_eyebrow }}</p>
+          <h2 id="advantages-title">{{ config.advantages_title }}</h2>
+          <p>{{ config.advantages_text }}</p>
+        </div>
+        <div class="benefits-grid">
+          <article class="benefit-card">
+            <div class="benefit-card__icon benefit-card__icon--shield" aria-hidden="true">
+              {% include "catalog/partials/icon.html" with icon="shield" %}
+            </div>
+            <div>
+              <h3>{{ config.advantage_1_title }}</h3>
+              <p>{{ config.advantage_1_text }}</p>
+            </div>
+          </article>
+          <article class="benefit-card">
+            <div class="benefit-card__icon benefit-card__icon--cup" aria-hidden="true">
+              {% include "catalog/partials/icon.html" with icon="cup" %}
+            </div>
+            <div>
+              <h3>{{ config.advantage_2_title }}</h3>
+              <p>{{ config.advantage_2_text }}</p>
+            </div>
+          </article>
+          <article class="benefit-card">
+            <div class="benefit-card__icon benefit-card__icon--tweezers" aria-hidden="true">
+              {% include "catalog/partials/icon.html" with icon="tweezers" %}
+            </div>
+            <div>
+              <h3>{{ config.advantage_3_title }}</h3>
+              <p>{{ config.advantage_3_text }}</p>
+            </div>
+          </article>
+          <article class="benefit-card">
+            <div class="benefit-card__icon benefit-card__icon--sprout" aria-hidden="true">
+              {% include "catalog/partials/icon.html" with icon="sprout" %}
+            </div>
+            <div>
+              <h3>{{ config.advantage_4_title }}</h3>
+              <p>{{ config.advantage_4_text }}</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--cream plants section-observe" id="plants" aria-labelledby="plants-title">
+      <div class="container">
+        <div class="section-head section-head--wide">
+          <div>
+            <p class="eyebrow">{{ config.plants_eyebrow }}</p>
+            <h2 id="plants-title">{{ config.plants_title }}</h2>
+          </div>
+          <p>{{ config.plants_text }}</p>
+        </div>
+        <div class="product-grid">
+          {% for product in products %}
+            {% include "catalog/partials/product_card.html" with product=product %}
+          {% empty %}
+            <div class="empty-state">Товары пока не загружены в базу данных.</div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <section class="section aquariums section-observe" id="aquariums" aria-labelledby="aquariums-title">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">{{ config.aquariums_eyebrow }}</p>
+          <h2 id="aquariums-title">{{ config.aquariums_title }}</h2>
+          <p>{{ config.aquariums_text }}</p>
+        </div>
+        <div class="gallery-grid">
+          {% for item in gallery_items %}
+            <article class="gallery-card">
+              <picture>
+                <img src="{% static item.image_path %}" alt="{{ item.image_alt|default:item.title }}" loading="lazy" width="760" height="580" />
+              </picture>
+              <div class="gallery-card__caption">
+                <h3>{{ item.title }}</h3>
+                <p>{{ item.text }}</p>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <section class="section order section-observe" aria-labelledby="order-title">
+      <div class="container order__wrap">
+        <div class="section-copy">
+          <p class="eyebrow">{{ config.order_eyebrow }}</p>
+          <h2 id="order-title">{{ config.order_title }}</h2>
+        </div>
+        <div class="steps">
+          <article class="step-card">
+            <span>1</span>
+            <div>
+              <h3>{{ config.order_step_1_title }}</h3>
+              <p>{{ config.order_step_1_text }}</p>
+            </div>
+          </article>
+          <article class="step-card">
+            <span>2</span>
+            <div>
+              <h3>{{ config.order_step_2_title }}</h3>
+              <p>{{ config.order_step_2_text }}</p>
+            </div>
+          </article>
+          <article class="step-card">
+            <span>3</span>
+            <div>
+              <h3>{{ config.order_step_3_title }}</h3>
+              <p>{{ config.order_step_3_text }}</p>
+            </div>
+          </article>
+          <article class="step-card">
+            <span>4</span>
+            <div>
+              <h3>{{ config.order_step_4_title }}</h3>
+              <p>{{ config.order_step_4_text }}</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--dark reviews section-observe" id="reviews" aria-labelledby="reviews-title">
+      <div class="container">
+        <div class="reviews__top">
+          <div>
+            <p class="eyebrow">{{ config.reviews_eyebrow }}</p>
+            <h2 id="reviews-title">{{ config.reviews_title }}</h2>
+          </div>
+          <div class="rating" aria-label="Средний рейтинг {{ config.reviews_rating }} из 5">
+            <strong>{{ config.reviews_rating }}</strong>
+            <span>из 5</span>
+            <div aria-hidden="true">★★★★★</div>
+          </div>
+        </div>
+        <div class="reviews-grid" data-reviews-grid>
+          {% for review in reviews %}
+            <article class="review-card{% if forloop.counter > 6 %} is-hidden-review{% endif %}">
+              <div class="review-card__stars" aria-label="{{ review.rating }} из 5">{% for _ in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}</div>
+              <p>{{ review.text }}</p>
+              <strong>{{ review.name }}</strong>
+            </article>
+          {% endfor %}
+        </div>
+        {% if reviews|length > 6 %}
+          <div class="reviews__actions">
+            <button class="button button--secondary" type="button" data-reviews-toggle data-show-text="Посмотреть все отзывы" data-hide-text="Свернуть отзывы">Посмотреть все отзывы</button>
+          </div>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="section contacts section-observe" id="contacts" aria-labelledby="contacts-title">
+      <div class="container contact-card">
+        <div>
+          <p class="eyebrow">{{ config.contacts_eyebrow }}</p>
+          <h2 id="contacts-title">{{ config.contacts_title }}</h2>
+          <p>{{ config.contacts_text }}</p>
+        </div>
+        <div class="contact-list">
+          <a href="tel:{{ config.contact_phone }}">
+            <span>Телефон</span>
+            <strong>{{ config.contact_phone_display }}</strong>
+          </a>
+          <a href="mailto:{{ config.contact_email }}">
+            <span>Почта</span>
+            <strong>{{ config.contact_email }}</strong>
+          </a>
+          <div>
+            <span>Город</span>
+            <strong>{{ config.contact_city }}</strong>
+          </div>
+        </div>
+        <div class="contact-actions">
+          <a class="button button--primary" href="tel:{{ config.contact_phone }}">{{ config.contacts_call_button_text }}</a>
+          <a class="button button--secondary" href="mailto:{{ config.contact_email }}">{{ config.contacts_email_button_text }}</a>
+          <a class="button button--whatsapp" href="{{ config.whatsapp_url }}" target="_blank" rel="noreferrer">{{ config.contacts_whatsapp_button_text }}</a>
+          <a class="button button--max" href="{{ config.max_url }}" target="_blank" rel="noreferrer">{{ config.contacts_max_button_text }}</a>
+        </div>
+      </div>
+    </section>
+  </main>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "catalog/base.html" %}
+
+{% block title %}Подтверждение изменений | {{ config.brand_name }}{% endblock %}
+
+{% block content %}
+  <main class="admin-page">
+    <section class="section section--light">
+      <div class="container page-shell page-shell--narrow">
+        <div class="page-head">
+          <div>
+            <p class="eyebrow">Подтверждение merge</p>
+            <h1>{{ price_upload.display_filename }}</h1>
+            <p>Скрипт уже сравнил Excel с текущей базой. Ниже видно, сколько значений изменится в каждой колонке.</p>
+          </div>
+        </div>
+
+        <section class="glass-panel">
+          <div class="summary-grid">
+            <div class="summary-card">
+              <span>Строк в файле</span>
+              <strong>{{ price_upload.row_count }}</strong>
+            </div>
+            <div class="summary-card">
+              <span>Новых товаров</span>
+              <strong>{{ new_records }}</strong>
+            </div>
+          </div>
+
+          <div class="changes-table">
+            {% for field, count in changes %}
+              <div class="changes-row">
+                <span>{{ field }}</span>
+                <strong>{{ count }}</strong>
+              </div>
+            {% empty %}
+              <div class="empty-state">Изменений в импортируемых колонках не найдено.</div>
+            {% endfor %}
+          </div>
+
+          <form method="post" class="stack-form">
+            {% csrf_token %}
+            <div class="form-field">
+              <span class="field-label">{{ form.confirm_merge.label }}</span>
+              {{ form.confirm_merge }}
+            </div>
+            <div class="form-actions">
+              <button class="button button--primary" type="submit">Подтвердить выбор</button>
+              <a class="button button--glass" href="{% url 'catalog:price_upload_registry' %}">Вернуться в реестр</a>
+            </div>
+          </form>
+        </section>
+      </div>
+    </section>
+  </main>
+{% endblock %}

@@ -1,0 +1,105 @@
+{% extends "catalog/base.html" %}
+
+{% block title %}Прайсы | {{ config.brand_name }}{% endblock %}
+
+{% block content %}
+  <main class="admin-page admin-page--prices">
+    <section class="section section--light">
+      <div class="container page-shell">
+        <div class="page-head page-head--prices">
+          <div>
+            <p class="eyebrow">Реестр прайсов</p>
+            <h1>Excel-загрузки</h1>
+            <p>Компактный журнал файлов и быстрые действия в админском стиле.</p>
+          </div>
+          <a class="button button--primary button--icon" href="{% url 'catalog:export_database_excel' %}">
+            <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true"><path d="M12 3v11"/><path d="M8 10l4 4 4-4"/><path d="M4 18h16"/></svg>
+            <span>Экспорт</span>
+          </a>
+        </div>
+
+        <div class="price-layout price-layout--strict">
+          <section class="glass-panel glass-panel--admin">
+            <div class="panel-head">
+              <h2>Новая загрузка</h2>
+              <span class="panel-hint">дд_мм_гггг-чч-мм-сс.xlsx</span>
+            </div>
+            <form method="post" enctype="multipart/form-data" class="stack-form stack-form--inline">
+              {% csrf_token %}
+              <div class="form-field form-field--file">
+                <label for="{{ form.file.id_for_label }}">{{ form.file.label }}</label>
+                {{ form.file }}
+                {% if form.file.errors %}<div class="form-error">{{ form.file.errors|join:", " }}</div>{% endif %}
+              </div>
+              <div class="form-field">
+                <span class="field-label">{{ form.should_update_prices.label }}</span>
+                {{ form.should_update_prices }}
+                {% if form.should_update_prices.errors %}<div class="form-error">{{ form.should_update_prices.errors|join:", " }}</div>{% endif %}
+              </div>
+              <button class="button button--primary" type="submit">Загрузить</button>
+            </form>
+          </section>
+
+          <section class="glass-panel glass-panel--admin">
+            <div class="panel-head">
+              <h2>Реестр</h2>
+              <span class="panel-hint">{{ page_obj.paginator.count }} файлов</span>
+            </div>
+            <div class="registry-list registry-list--strict">
+              {% for upload in page_obj %}
+                <div class="registry-row registry-row--strict">
+                  <div class="registry-state registry-state--{{ upload.merge_state }}"
+                       title="{% if upload.merge_state == "merged" %}Изменения применены{% elif upload.merge_state == "cancelled" %}Merge отменен{% elif upload.merge_state == "pending" %}Ожидает подтверждения{% else %}Сохранен без обновления базы{% endif %}"
+                       aria-label="{% if upload.merge_state == "merged" %}Изменения применены{% elif upload.merge_state == "cancelled" %}Merge отменен{% elif upload.merge_state == "pending" %}Ожидает подтверждения{% else %}Сохранен без обновления базы{% endif %}">
+                      {% if upload.merge_state == "merged" %}
+                        <svg viewBox="0 0 24 24" focusable="false"><path d="M5 12.5 9.2 17 19 7.5"/></svg>
+                      {% elif upload.merge_state == "cancelled" %}
+                        <svg viewBox="0 0 24 24" focusable="false"><path d="M7 7l10 10"/><path d="M17 7 7 17"/></svg>
+                      {% elif upload.merge_state == "pending" %}
+                        <svg viewBox="0 0 24 24" focusable="false"><path d="M12 7v5l3 2"/><circle cx="12" cy="12" r="8"/></svg>
+                      {% else %}
+                        <svg viewBox="0 0 24 24" focusable="false"><path d="M5 7h14"/><path d="M7 7V5h10v2"/><path d="M7 10v8h10v-8"/></svg>
+                      {% endif %}
+                  </div>
+                  <strong class="registry-file" title="{{ upload.display_filename }}">{{ upload.display_filename }}</strong>
+                  <div class="registry-meta" title="Загружен {{ upload.uploaded_at|date:'d.m.Y H:i:s' }}">
+                    <svg viewBox="0 0 24 24" focusable="false"><path d="M12 7v5l3 2"/><circle cx="12" cy="12" r="8"/></svg>
+                    <span>{{ upload.uploaded_at|date:"d.m.y H:i" }}</span>
+                  </div>
+                  <div class="registry-meta" title="Строк: {{ upload.row_count }}">
+                    <svg viewBox="0 0 24 24" focusable="false"><path d="M8 6h11"/><path d="M8 12h11"/><path d="M8 18h11"/><path d="M4 6h.01"/><path d="M4 12h.01"/><path d="M4 18h.01"/></svg>
+                    <span>{{ upload.row_count }}</span>
+                  </div>
+                  <div class="registry-row__actions">
+                    {% if upload.merge_state == "pending" %}
+                      <a class="icon-button icon-button--warn" href="{% url 'catalog:price_upload_confirm' upload.pk %}" title="Открыть подтверждение" aria-label="Открыть подтверждение для {{ upload.display_filename }}">
+                        <svg viewBox="0 0 24 24" focusable="false"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+                      </a>
+                    {% endif %}
+                    <a class="icon-button" href="{% url 'catalog:price_upload_download' upload.pk %}" title="Скачать" aria-label="Скачать {{ upload.display_filename }}">
+                      <svg viewBox="0 0 24 24" focusable="false"><path d="M12 3v11"/><path d="M8 10l4 4 4-4"/><path d="M4 18h16"/></svg>
+                    </a>
+                  </div>
+                </div>
+              {% empty %}
+                <div class="empty-state">Файлы еще не загружались.</div>
+              {% endfor %}
+            </div>
+
+            {% if page_obj.paginator.num_pages > 1 %}
+              <nav class="pagination" aria-label="Пагинация реестра">
+                {% if page_obj.has_previous %}
+                  <a href="?page={{ page_obj.previous_page_number }}">Назад</a>
+                {% endif %}
+                <span>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+                {% if page_obj.has_next %}
+                  <a href="?page={{ page_obj.next_page_number }}">Вперед</a>
+                {% endif %}
+              </nav>
+            {% endif %}
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+{% endblock %}

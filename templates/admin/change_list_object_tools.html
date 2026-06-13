@@ -1,0 +1,15 @@
+{% load i18n admin_urls %}
+
+{% block object-tools-items %}
+  {% if has_add_permission %}
+  <li>
+    {% url cl.opts|admin_urlname:'add' as add_url %}
+    <a href="{% add_preserved_filters add_url is_popup to_field %}" class="addlink">
+      <div class="addlink-inner">
+        <span class="addlink-icon" aria-hidden="true"></span>
+        <span class="addlink-label">{% blocktranslate with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktranslate %}</span>
+      </div>
+    </a>
+  </li>
+  {% endif %}
+{% endblock %}

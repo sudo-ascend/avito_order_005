@@ -1,0 +1,71 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="{% static 'admin/css/dashboard.css' %}">
+{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block nav-breadcrumbs %}{% endblock %}
+{% block nav-sidebar %}{% endblock %}
+
+{% block content %}
+<div class="row g-4 align-items-start">
+  <div class="col-12 col-lg-8">
+    <div class="mb-4">
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        <div class="admin-toolbar d-flex gap-2 flex-wrap">
+          <a class="btn btn-sm btn-outline-dark text-black" href="{% url 'admin:catalog_siteconfiguration_change' 1 %}">Тексты сайта</a>
+          <a class="btn btn-sm btn-outline-dark text-black" href="{% url 'admin:catalog_plantproduct_changelist' %}">Каталог товаров</a>
+          <a class="btn btn-sm btn-outline-dark text-black" href="{% url 'catalog:price_upload_registry' %}">Реестр прайсов</a>
+        </div>
+      </div>
+    </div>
+
+    <div id="content-main" class="admin-dashboard-grid">
+      {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-4">
+    <aside id="content-related" class="admin-sidebar d-grid gap-4">
+
+      <div class="module" id="recent-actions-module">
+        <h2>{% translate 'Recent actions' %}</h2>
+        <h3>{% translate 'My actions' %}</h3>
+        {% load log %}
+        {% get_admin_log 10 as admin_log for_user user %}
+        {% if not admin_log %}
+          <p>{% translate 'None available' %}</p>
+        {% else %}
+          <ul class="actionlist">
+            {% for entry in admin_log %}
+              <li class="{% if entry.is_addition %}addlink{% endif %}{% if entry.is_change %}changelink{% endif %}{% if entry.is_deletion %}deletelink{% endif %}">
+                <span class="visually-hidden">{% if entry.is_addition %}{% translate 'Added:' %}{% elif entry.is_change %}{% translate 'Changed:' %}{% elif entry.is_deletion %}{% translate 'Deleted:' %}{% endif %}</span>
+                {% if entry.is_deletion or not entry.get_admin_url %}
+                  {{ entry.object_repr }}
+                {% else %}
+                  <a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>
+                {% endif %}
+                <br />
+                {% if entry.content_type %}
+                  <span class="mini quiet">{% filter capfirst %}{{ entry.content_type.name }}{% endfilter %}</span>
+                {% else %}
+                  <span class="mini quiet">{% translate 'Unknown content' %}</span>
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}
+
+{% block sidebar %}{% endblock %}

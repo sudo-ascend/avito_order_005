@@ -1,0 +1,30 @@
+{% extends "catalog/base.html" %}
+
+{% block title %}Избранное | {{ config.brand_name }}{% endblock %}
+
+{% block content %}
+  <main class="admin-page" data-favorites-page>
+    <section class="section section--light">
+      <div class="container page-shell">
+        <div class="page-head">
+          <div>
+            <p class="eyebrow">Избранные товары</p>
+            <h1>Все понравившиеся растения</h1>
+            <p>Список хранится в сессии браузера. Можно вернуться в каталог и продолжить отмечать сердечком интересные позиции.</p>
+          </div>
+          <a class="button button--primary" href="{% url 'catalog:home' %}#plants">Открыть каталог</a>
+        </div>
+
+        <div class="product-grid{% if not products %} is-hidden{% endif %}" data-favorites-grid>
+          {% for product in products %}
+            {% include "catalog/partials/product_card.html" with product=product %}
+          {% endfor %}
+        </div>
+
+        <div class="empty-state{% if products %} is-hidden{% endif %}" data-favorites-empty>
+          В избранном пока ничего нет. Откройте каталог и отметьте понравившиеся товары сердечком.
+        </div>
+      </div>
+    </section>
+  </main>
+{% endblock %}

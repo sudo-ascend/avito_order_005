@@ -1,0 +1,74 @@
+<article class="product-card" data-product-card data-product-id="{{ product.id }}">
+  <button
+    class="favorite-button{% if product.id in favorite_product_ids %} is-active{% endif %}"
+    type="button"
+    data-favorite-toggle
+    data-product-id="{{ product.id }}"
+    data-toggle-url="{% url 'catalog:toggle_favorite_product' product.id %}"
+    aria-label="{% if product.id in favorite_product_ids %}Убрать из избранного{% else %}Добавить в избранное{% endif %}"
+    aria-pressed="{% if product.id in favorite_product_ids %}true{% else %}false{% endif %}"
+  >
+    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+      <path d="M12 20.4 4.9 13.8a4.8 4.8 0 0 1 0-6.9 4.9 4.9 0 0 1 6.9 0L12 7.1l.2-.2a4.9 4.9 0 0 1 6.9 0 4.8 4.8 0 0 1 0 6.9Z"/>
+    </svg>
+  </button>
+  {% if product.display_image_url %}
+    <picture>
+      <img src="{{ product.display_image_url }}" alt="{{ product.variety_name }}" loading="lazy" width="760" height="580" />
+    </picture>
+  {% else %}
+    <div class="product-card__placeholder">
+      <span>{{ product.variety_name|slice:":1" }}</span>
+    </div>
+  {% endif %}
+  <div class="product-card__body">
+    <div>
+      <h3>{{ product.variety_name }}</h3>
+      {% if product.latin_name %}
+        <em>{{ product.latin_name }}</em>
+      {% endif %}
+    </div>
+    {% if product.description %}
+      <p class="product-card__description">{{ product.description }}</p>
+    {% endif %}
+    <ul class="product-card__details">
+      <li>
+        <strong>Артикул</strong>
+        <span>{{ product.article }}</span>
+      </li>
+      {% if product.location %}
+        <li>
+          <strong>Локация</strong>
+          <span>{{ product.location }}</span>
+        </li>
+      {% endif %}
+      {% if product.container_type %}
+        <li>
+          <strong>Тара</strong>
+          <span>{{ product.container_type }}</span>
+        </li>
+      {% endif %}
+      {% if product.order_multiple or product.order_multiple == 0 %}
+        <li>
+          <strong>Кратность заказа</strong>
+          <span>{{ product.order_multiple }}</span>
+        </li>
+      {% endif %}
+      <li>
+        <strong>Наличие</strong>
+        <span>{% if product.stock or product.stock == 0 %}{{ product.stock }} шт.{% else %}Уточняйте{% endif %}</span>
+      </li>
+      <li>
+        <strong>Цена</strong>
+        <span>{% if product.price or product.price == 0 %}{{ product.price }} ₽{% else %}По запросу{% endif %}</span>
+      </li>
+      {% if product.order_note %}
+        <li>
+          <strong>Заказ</strong>
+          <span>{{ product.order_note }}</span>
+        </li>
+      {% endif %}
+    </ul>
+    <a class="button button--primary" href="{% url 'catalog:home' %}#contacts">{{ config.product_button_text }}</a>
+  </div>
+</article>

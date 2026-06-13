@@ -1,0 +1,42 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | Aquaklon{% endblock %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/admin-theme.css' %}" />
+{% endblock %}
+
+{% block bodyclass %}{{ block.super }} aquaklon-admin{% endblock %}
+
+{% block branding %}
+  <div id="site-name">
+    <a class="aquaklon-admin-brand" href="{% url 'catalog:home' %}" target="_blank" rel="noreferrer">
+      <img class="aquaklon-admin-brand__logo" src="{% static 'logo.png' %}" alt="" width="56" height="56" />
+      <span class="aquaklon-admin-brand__text">
+        <strong>Aquaklon</strong>
+        <span>Админка сайта и прайсов</span>
+      </span>
+    </a>
+  </div>
+{% endblock %}
+
+{% block userlinks %}
+  {% if site_url %}
+    <a href="{{ site_url }}">{% translate 'View site' %}</a> /
+  {% endif %}
+  {% if user.is_active and user.is_staff %}
+    {% url 'django-admindocs-docroot' as docsroot %}
+    {% if docsroot %}
+      <a href="{{ docsroot }}">{% translate 'Documentation' %}</a> /
+    {% endif %}
+  {% endif %}
+  {% if user.has_usable_password %}
+    <a href="{% url 'admin:password_change' %}">{% translate 'Change password' %}</a> /
+  {% endif %}
+  <form id="logout-form" method="post" action="{% url 'admin:logout' %}">
+    {% csrf_token %}
+    <button type="submit">{% translate 'Log out' %}</button>
+  </form>
+{% endblock %}
