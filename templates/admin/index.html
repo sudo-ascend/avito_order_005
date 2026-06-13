@@ -20,9 +20,11 @@
     <div class="mb-4">
       <div class="d-flex flex-wrap align-items-center gap-2">
         <div class="admin-toolbar d-flex gap-2 flex-wrap">
-          <a class="btn btn-sm btn-outline-dark text-black" href="{% url 'admin:catalog_siteconfiguration_change' 1 %}">Тексты сайта</a>
-          <a class="btn btn-sm btn-outline-dark text-black" href="{% url 'admin:catalog_plantproduct_changelist' %}">Каталог товаров</a>
-          <a class="btn btn-sm btn-outline-dark text-black" href="{% url 'catalog:price_upload_registry' %}">Реестр прайсов</a>
+          <a class="btn btn-sm btn-outline-dark text-black" href="{% url 'admin:catalog_siteconfiguration_changelist' %}">Texts and images</a>
+          <a class="btn btn-sm btn-outline-dark text-black" href="{% url 'admin:catalog_benefit_changelist' %}">Benefits</a>
+          <a class="btn btn-sm btn-outline-dark text-black" href="{% url 'admin:catalog_orderstep_changelist' %}">Order steps</a>
+          <a class="btn btn-sm btn-outline-dark text-black" href="{% url 'admin:catalog_galleryitem_changelist' %}">Gallery</a>
+          <a class="btn btn-sm btn-outline-dark text-black" href="{% url 'admin:catalog_review_changelist' %}">Reviews</a>
         </div>
       </div>
     </div>
@@ -34,7 +36,6 @@
 
   <div class="col-12 col-lg-4">
     <aside id="content-related" class="admin-sidebar d-grid gap-4">
-
       <div class="module" id="recent-actions-module">
         <h2>{% translate 'Recent actions' %}</h2>
         <h3>{% translate 'My actions' %}</h3>

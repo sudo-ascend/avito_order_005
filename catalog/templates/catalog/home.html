@@ -1,17 +1,16 @@
 {% extends "catalog/base.html" %}
-{% load static %}
 
 {% block content %}
   <main id="top">
     <section class="hero section-observe" aria-labelledby="hero-title">
       <picture class="hero__media">
-        <source srcset="{% static 'hero-aquarium.avif' %}" type="image/avif" />
         <img
-          src="{% static 'hero-aquarium.webp' %}"
-          alt="Густой растительный аквариум с живыми аквариумными растениями {{ config.brand_name }}"
+          src="{{ config.hero_image_url }}"
+          alt="Главный экран {{ config.brand_name }}"
           width="1920"
           height="1080"
           fetchpriority="high"
+          decoding="async"
         />
       </picture>
       <div class="hero__overlay"></div>
@@ -41,16 +40,14 @@
           <p>{{ config.about_body_2 }}</p>
         </div>
         <div class="about-card">
-          <picture>
-            <source srcset="{% static 'feature-closeup.avif' %}" type="image/avif" />
-            <img
-              src="{% static 'feature-closeup.webp' %}"
-              alt="Крупный план живого аквариумного растения"
-              width="1000"
-              height="1100"
-              loading="lazy"
-            />
-          </picture>
+          <img
+            src="{{ config.about_image_url }}"
+            alt="{{ config.about_title }}"
+            width="1000"
+            height="1100"
+            loading="lazy"
+            decoding="async"
+          />
           <div class="about-card__panel">
             <strong>{{ config.about_panel_title }}</strong>
             <span>{{ config.about_panel_text }}</span>
@@ -67,61 +64,44 @@
           <p>{{ config.advantages_text }}</p>
         </div>
         <div class="benefits-grid">
-          <article class="benefit-card">
-            <div class="benefit-card__icon benefit-card__icon--shield" aria-hidden="true">
-              {% include "catalog/partials/icon.html" with icon="shield" %}
-            </div>
-            <div>
-              <h3>{{ config.advantage_1_title }}</h3>
-              <p>{{ config.advantage_1_text }}</p>
-            </div>
-          </article>
-          <article class="benefit-card">
-            <div class="benefit-card__icon benefit-card__icon--cup" aria-hidden="true">
-              {% include "catalog/partials/icon.html" with icon="cup" %}
-            </div>
-            <div>
-              <h3>{{ config.advantage_2_title }}</h3>
-              <p>{{ config.advantage_2_text }}</p>
-            </div>
-          </article>
-          <article class="benefit-card">
-            <div class="benefit-card__icon benefit-card__icon--tweezers" aria-hidden="true">
-              {% include "catalog/partials/icon.html" with icon="tweezers" %}
-            </div>
-            <div>
-              <h3>{{ config.advantage_3_title }}</h3>
-              <p>{{ config.advantage_3_text }}</p>
-            </div>
-          </article>
-          <article class="benefit-card">
-            <div class="benefit-card__icon benefit-card__icon--sprout" aria-hidden="true">
-              {% include "catalog/partials/icon.html" with icon="sprout" %}
-            </div>
-            <div>
-              <h3>{{ config.advantage_4_title }}</h3>
-              <p>{{ config.advantage_4_text }}</p>
-            </div>
-          </article>
+          {% for benefit in benefits %}
+            <article class="benefit-card">
+              <div class="benefit-card__icon benefit-card__icon--{{ benefit.icon }}" aria-hidden="true">
+                {% include "catalog/partials/icon.html" with icon=benefit.icon %}
+              </div>
+              <div>
+                <h3>{{ benefit.title }}</h3>
+                <p>{{ benefit.text }}</p>
+              </div>
+            </article>
+          {% empty %}
+            <div class="empty-state">Преимущества пока не добавлены в админке.</div>
+          {% endfor %}
         </div>
       </div>
     </section>
 
     <section class="section section--cream plants section-observe" id="plants" aria-labelledby="plants-title">
-      <div class="container">
-        <div class="section-head section-head--wide">
-          <div>
-            <p class="eyebrow">{{ config.plants_eyebrow }}</p>
-            <h2 id="plants-title">{{ config.plants_title }}</h2>
-          </div>
+      <div class="container split">
+        <div class="section-copy">
+          <p class="eyebrow">{{ config.plants_eyebrow }}</p>
+          <h2 id="plants-title">{{ config.plants_title }}</h2>
           <p>{{ config.plants_text }}</p>
+          <a class="button button--primary" href="#contacts">{{ config.header_contact_button_text }}</a>
         </div>
-        <div class="product-grid">
-          {% for product in products %}
-            {% include "catalog/partials/product_card.html" with product=product %}
-          {% empty %}
-            <div class="empty-state">Товары пока не загружены в базу данных.</div>
-          {% endfor %}
+        <div class="about-card about-card--plants">
+          <img
+            src="{{ config.plants_image_url }}"
+            alt="{{ config.plants_title }}"
+            width="1000"
+            height="1100"
+            loading="lazy"
+            decoding="async"
+          />
+          <div class="about-card__panel">
+            <strong>{{ config.plants_panel_title }}</strong>
+            <span>{{ config.plants_panel_text }}</span>
+          </div>
         </div>
       </div>
     </section>
@@ -135,15 +115,13 @@
         </div>
         <div class="gallery-grid">
           {% for item in gallery_items %}
-            <article class="gallery-card">
-              <picture>
-                <img src="{% static item.image_path %}" alt="{{ item.image_alt|default:item.title }}" loading="lazy" width="760" height="580" />
-              </picture>
-              <div class="gallery-card__caption">
+            <figure class="gallery-card">
+              <img src="{{ item.display_image_url }}" alt="{{ item.image_alt|default:item.title }}" loading="lazy" decoding="async" width="760" height="580" />
+              <figcaption class="gallery-card__caption">
                 <h3>{{ item.title }}</h3>
                 <p>{{ item.text }}</p>
-              </div>
-            </article>
+              </figcaption>
+            </figure>
           {% endfor %}
         </div>
       </div>
@@ -156,34 +134,17 @@
           <h2 id="order-title">{{ config.order_title }}</h2>
         </div>
         <div class="steps">
-          <article class="step-card">
-            <span>1</span>
-            <div>
-              <h3>{{ config.order_step_1_title }}</h3>
-              <p>{{ config.order_step_1_text }}</p>
-            </div>
-          </article>
-          <article class="step-card">
-            <span>2</span>
-            <div>
-              <h3>{{ config.order_step_2_title }}</h3>
-              <p>{{ config.order_step_2_text }}</p>
-            </div>
-          </article>
-          <article class="step-card">
-            <span>3</span>
-            <div>
-              <h3>{{ config.order_step_3_title }}</h3>
-              <p>{{ config.order_step_3_text }}</p>
-            </div>
-          </article>
-          <article class="step-card">
-            <span>4</span>
-            <div>
-              <h3>{{ config.order_step_4_title }}</h3>
-              <p>{{ config.order_step_4_text }}</p>
-            </div>
-          </article>
+          {% for step in order_steps %}
+            <article class="step-card">
+              <span>{{ forloop.counter }}</span>
+              <div>
+                <h3>{{ step.title }}</h3>
+                <p>{{ step.text }}</p>
+              </div>
+            </article>
+          {% empty %}
+            <div class="empty-state">Этапы заказа пока не добавлены в админке.</div>
+          {% endfor %}
         </div>
       </div>
     </section>
@@ -205,7 +166,7 @@
           {% for review in reviews %}
             <article class="review-card{% if forloop.counter > 6 %} is-hidden-review{% endif %}">
               <div class="review-card__stars" aria-label="{{ review.rating }} из 5">{% for _ in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}</div>
-              <p>{{ review.text }}</p>
+              <blockquote>{{ review.text }}</blockquote>
               <strong>{{ review.name }}</strong>
             </article>
           {% endfor %}
@@ -218,6 +179,26 @@
       </div>
     </section>
 
+    {% if faq_items %}
+      <section class="section section--light faq section-observe" id="faq" aria-labelledby="faq-title">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">{{ faq_eyebrow }}</p>
+            <h2 id="faq-title">{{ faq_title }}</h2>
+            <p>{{ faq_lead }}</p>
+          </div>
+          <div class="faq-list">
+            {% for item in faq_items %}
+              <article class="faq-item">
+                <h3>{{ item.question }}</h3>
+                <p>{{ item.answer }}</p>
+              </article>
+            {% endfor %}
+          </div>
+        </div>
+      </section>
+    {% endif %}
+
     <section class="section contacts section-observe" id="contacts" aria-labelledby="contacts-title">
       <div class="container contact-card">
         <div>
@@ -225,7 +206,7 @@
           <h2 id="contacts-title">{{ config.contacts_title }}</h2>
           <p>{{ config.contacts_text }}</p>
         </div>
-        <div class="contact-list">
+        <address class="contact-list">
           <a href="tel:{{ config.contact_phone }}">
             <span>Телефон</span>
             <strong>{{ config.contact_phone_display }}</strong>
@@ -238,12 +219,12 @@
             <span>Город</span>
             <strong>{{ config.contact_city }}</strong>
           </div>
-        </div>
+        </address>
         <div class="contact-actions">
           <a class="button button--primary" href="tel:{{ config.contact_phone }}">{{ config.contacts_call_button_text }}</a>
           <a class="button button--secondary" href="mailto:{{ config.contact_email }}">{{ config.contacts_email_button_text }}</a>
-          <a class="button button--whatsapp" href="{{ config.whatsapp_url }}" target="_blank" rel="noreferrer">{{ config.contacts_whatsapp_button_text }}</a>
-          <a class="button button--max" href="{{ config.max_url }}" target="_blank" rel="noreferrer">{{ config.contacts_max_button_text }}</a>
+          <a class="button button--whatsapp" href="{{ config.whatsapp_url }}" target="_blank" rel="noopener noreferrer">{{ config.contacts_whatsapp_button_text }}</a>
+          <a class="button button--max" href="{{ config.max_url }}" target="_blank" rel="noopener noreferrer">{{ config.contacts_max_button_text }}</a>
         </div>
       </div>
     </section>

@@ -1,16 +1,10 @@
-from pathlib import Path
-
 from django.core.management.base import BaseCommand
 
 from catalog.models import Benefit, GalleryItem, OrderStep, Review, SiteConfiguration
-from catalog.services.prices import create_price_upload_from_file
 
 
 class Command(BaseCommand):
-    help = "Заполняет сайт стартовым контентом и при необходимости импортирует Excel прайс."
-
-    def add_arguments(self, parser):
-        parser.add_argument("--excel", type=str, help="Путь к Excel файлу для первичного импорта товаров.")
+    help = "Заполняет сайт стартовым контентом."
 
     def handle(self, *args, **options):
         SiteConfiguration.objects.get_or_create(pk=1)
@@ -58,21 +52,5 @@ class Command(BaseCommand):
                     Review(sort_order=6, name="Ольга М.", rating=5, text="Отдельное спасибо за консультацию по свету. После корректировки режима растения стали выглядеть лучше."),
                 ]
             )
-
-        excel_path = options.get("excel")
-        if excel_path:
-            resolved_path = Path(excel_path)
-            if not resolved_path.exists():
-                self.stderr.write(self.style.ERROR(f"Файл не найден: {resolved_path}"))
-                return
-
-            with resolved_path.open("rb") as excel_file:
-                upload = create_price_upload_from_file(uploaded_file=excel_file, user=None, update_requested=True)
-            upload.is_merged = True
-            upload.save(update_fields=["is_merged"])
-            from catalog.services.prices import apply_price_upload
-
-            apply_price_upload(upload)
-            self.stdout.write(self.style.SUCCESS(f"Excel импортирован: {resolved_path.name}"))
 
         self.stdout.write(self.style.SUCCESS("Стартовый контент готов."))

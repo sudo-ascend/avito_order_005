@@ -1,14 +1,8 @@
 from decimal import Decimal
-import re
 
-from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.templatetags.static import static
-from django.utils import timezone
-
-User = get_user_model()
-PRICE_UPLOAD_FILENAME_RE = re.compile(r"\d{2}_\d{2}_\d{4}-\d{2}-\d{2}-\d{2}\.xlsx")
 
 
 class SingletonModel(models.Model):
@@ -29,6 +23,16 @@ class SiteConfiguration(SingletonModel):
         default="Меристемные аквариумные растения Aquaklon для акваскейпа, домашних и профессиональных аквариумов.",
     )
     canonical_url = models.URLField("Canonical URL", blank=True, default="")
+    seo_keywords = models.CharField("SEO keywords", max_length=255, blank=True, default="")
+    meta_robots = models.CharField(
+        "Robots directives",
+        max_length=160,
+        default="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+    )
+    google_site_verification = models.CharField("Google site verification", max_length=255, blank=True, default="")
+    yandex_verification = models.CharField("Yandex verification", max_length=255, blank=True, default="")
+    social_image = models.ImageField("Social image", upload_to="site/seo", blank=True, null=True)
+    social_image_alt = models.CharField("Social image alt", max_length=255, blank=True, default="")
     contact_phone = models.CharField("Телефон для ссылок", max_length=32, default="+79266019274")
     contact_phone_display = models.CharField("Телефон для показа", max_length=32, default="8-926-601-92-74")
     contact_email = models.EmailField("Email", default="Aquaklon@yandex.ru")
@@ -44,8 +48,15 @@ class SiteConfiguration(SingletonModel):
     nav_contacts_label = models.CharField("Пункт меню Контакты", max_length=80, default="Контакты")
 
     header_contact_button_text = models.CharField("Текст кнопки в шапке", max_length=80, default="Связаться")
-    hero_eyebrow = models.CharField("Hero надзаголовок", max_length=255, default="Работаем в г. Москва · культура in vitro · акваскейп")
-    hero_title = models.TextField("Hero заголовок", default="Меристемные аквариумные растения для красивого и здорового аквариума")
+    hero_eyebrow = models.CharField(
+        "Hero надзаголовок",
+        max_length=255,
+        default="Работаем в г. Москва · культура in vitro · акваскейп",
+    )
+    hero_title = models.TextField(
+        "Hero заголовок",
+        default="Меристемные аквариумные растения для красивого и здорового аквариума",
+    )
     hero_lead = models.TextField(
         "Hero описание",
         default="Aquaklon выращивает качественные аквариумные растения для акваскейпа, домашних и профессиональных аквариумов.",
@@ -74,24 +85,29 @@ class SiteConfiguration(SingletonModel):
         default="Чистый старт для посадки, оформления и доращивания.",
     )
 
+    logo = models.ImageField("Логотип сайта", upload_to="site/branding", blank=True, null=True)
+    hero_image = models.ImageField("Hero изображение", upload_to="site/sections", blank=True, null=True)
+    about_image = models.ImageField("Изображение блока О нас", upload_to="site/sections", blank=True, null=True)
+
     advantages_eyebrow = models.CharField("Преимущества надзаголовок", max_length=120, default="Почему меристема")
     advantages_title = models.TextField("Преимущества заголовок", default="Растения, с которыми удобно работать")
     advantages_text = models.TextField(
         "Преимущества описание",
         default="Меристемные растения ценят за чистоту, компактность и предсказуемую посадку.",
     )
-    advantage_1_title = models.CharField("Преимущество 1 заголовок", max_length=160, default="Чистый посадочный материал")
-    advantage_1_text = models.TextField("Преимущество 1 текст", default="Растения без лишней нагрузки и с предсказуемым стартом.")
-    advantage_2_title = models.CharField("Преимущество 2 заголовок", max_length=160, default="Компактная форма")
-    advantage_2_text = models.TextField("Преимущество 2 текст", default="Удобно высаживать и быстро формировать композиции.")
-    advantage_3_title = models.CharField("Преимущество 3 заголовок", max_length=160, default="Подходит для акваскейпа")
-    advantage_3_text = models.TextField("Преимущество 3 текст", default="Хорошо смотрится в природных и дизайнерских аквариумах.")
-    advantage_4_title = models.CharField("Преимущество 4 заголовок", max_length=160, default="Работаем по Москве")
-    advantage_4_text = models.TextField("Преимущество 4 текст", default="Помогаем с подбором и доставкой растений.")
-
-    plants_eyebrow = models.CharField("Каталог надзаголовок", max_length=120, default="Каталог растений")
-    plants_title = models.TextField("Каталог заголовок", default="Растения для аквариума и акваскейпа")
-    product_button_text = models.CharField("Кнопка товара", max_length=80, default="Уточнить наличие")
+    plants_eyebrow = models.CharField("Растения надзаголовок", max_length=120, default="Растения")
+    plants_title = models.TextField("Растения заголовок", default="Подбор растений без публичного каталога и Excel")
+    plants_text = models.TextField(
+        "Растения описание",
+        default="На сайте оставляем только контентную подачу: показываем стиль, качество и примеры работ, а актуальный подбор обсуждаем напрямую в сообщениях.",
+    )
+    plants_panel_title = models.CharField("Растения карточка заголовок", max_length=120, default="Контент вместо прайса")
+    plants_panel_text = models.CharField(
+        "Растения карточка текст",
+        max_length=255,
+        default="Сайт стал чище: только тексты, визуалы и контакт для быстрого подбора растений.",
+    )
+    plants_image = models.ImageField("Изображение блока Растения", upload_to="site/sections", blank=True, null=True)
 
     aquariums_eyebrow = models.CharField("Галерея надзаголовок", max_length=120, default="Живые композиции")
     aquariums_title = models.TextField("Галерея заголовок", default="Аквариумы, созданные из наших растений")
@@ -102,15 +118,6 @@ class SiteConfiguration(SingletonModel):
 
     order_eyebrow = models.CharField("Заказ надзаголовок", max_length=120, default="Как заказать")
     order_title = models.TextField("Заказ заголовок", default="Простой путь от выбора до посадки")
-    order_step_1_title = models.CharField("Этап заказа 1 заголовок", max_length=160, default="Выберите растения")
-    order_step_1_text = models.TextField("Этап заказа 1 текст", default="Соберите список растений, которые нужны для вашего аквариума.")
-    order_step_2_title = models.CharField("Этап заказа 2 заголовок", max_length=160, default="Согласуйте наличие")
-    order_step_2_text = models.TextField("Этап заказа 2 текст", default="Мы подтвердим актуальное наличие и подскажем варианты.")
-    order_step_3_title = models.CharField("Этап заказа 3 заголовок", max_length=160, default="Оформите заказ")
-    order_step_3_text = models.TextField("Этап заказа 3 текст", default="Напишите удобным способом и подтвердите состав заказа.")
-    order_step_4_title = models.CharField("Этап заказа 4 заголовок", max_length=160, default="Получите и посадите")
-    order_step_4_text = models.TextField("Этап заказа 4 текст", default="Заберите растения и высадите их в аквариум.")
-
     reviews_eyebrow = models.CharField("Отзывы надзаголовок", max_length=120, default="Отзывы клиентов")
     reviews_title = models.TextField(
         "Отзывы заголовок",
@@ -136,16 +143,6 @@ class SiteConfiguration(SingletonModel):
     contacts_max_button_text = models.CharField("Кнопка MAX", max_length=80, default="Написать в MAX")
 
     footer_text = models.CharField("Текст в подвале", max_length=255, default="Москва · 8-926-601-92-74 · Aquaklon@yandex.ru")
-    price_notice = models.TextField(
-        "Примечание для прайс-листа",
-        blank=True,
-        default="Уважаемые аквариумисты, следите за актуальностью прайс-листа перед оформлением заказа.",
-    )
-    price_catalog_title = models.CharField(
-        "Заголовок прайс-листа",
-        max_length=255,
-        default="Наличие меристемных аквариумных растений",
-    )
 
     class Meta:
         verbose_name = "Конфигурация сайта"
@@ -153,6 +150,36 @@ class SiteConfiguration(SingletonModel):
 
     def __str__(self):
         return "Конфигурация сайта"
+
+    @property
+    def logo_url(self):
+        if self.logo:
+            return self.logo.url
+        return static("logo.png")
+
+    @property
+    def hero_image_url(self):
+        if self.hero_image:
+            return self.hero_image.url
+        return static("hero-aquarium.webp")
+
+    @property
+    def about_image_url(self):
+        if self.about_image:
+            return self.about_image.url
+        return static("feature-closeup.webp")
+
+    @property
+    def plants_image_url(self):
+        if self.plants_image:
+            return self.plants_image.url
+        return static("feature-red-plant.webp")
+
+    @property
+    def social_image_url(self):
+        if self.social_image:
+            return self.social_image.url
+        return static("og-aquaklon.jpg")
 
 
 class OrderedModel(models.Model):
@@ -189,10 +216,8 @@ class Benefit(OrderedModel):
 class GalleryItem(OrderedModel):
     title = models.CharField("Заголовок", max_length=160)
     text = models.TextField("Описание")
-    image_path = models.CharField(
-        "Путь к изображению",
-        max_length=255,
-    )
+    image = models.ImageField("Изображение", upload_to="site/gallery", blank=True, null=True)
+    image_path = models.CharField("Путь к изображению", max_length=255, blank=True, default="")
     image_alt = models.CharField("Alt текста", max_length=255, blank=True, default="")
 
     class Meta(OrderedModel.Meta):
@@ -201,6 +226,14 @@ class GalleryItem(OrderedModel):
 
     def __str__(self):
         return self.title
+
+    @property
+    def display_image_url(self):
+        if self.image:
+            return self.image.url
+        if self.image_path:
+            return static(self.image_path)
+        return ""
 
 
 class OrderStep(OrderedModel):
@@ -232,99 +265,13 @@ class Review(OrderedModel):
         return self.name
 
 
-class PlantProduct(models.Model):
-    variety_name = models.CharField("Название сорта", max_length=255)
-    latin_name = models.CharField("Латинское название", max_length=255, blank=True, default="")
-    article = models.CharField("Артикул", max_length=64, unique=True)
-    location = models.CharField("Локация", max_length=255, blank=True, default="")
-    container_type = models.CharField("Тара", max_length=120, blank=True, default="")
-    order_multiple = models.PositiveIntegerField("Кратность заказа", null=True, blank=True)
-    stock = models.IntegerField("Наличие", null=True, blank=True)
-    price = models.DecimalField("Цена", max_digits=10, decimal_places=2, null=True, blank=True)
-    discount_new = models.DecimalField("Скидка новые", max_digits=10, decimal_places=2, null=True, blank=True)
-    discount_legacy = models.DecimalField("Скидка 2023-2024", max_digits=10, decimal_places=2, null=True, blank=True)
-    discount_logo = models.DecimalField("Скидка з+аква лого", max_digits=10, decimal_places=2, null=True, blank=True)
-    order_note = models.CharField("Заказ", max_length=255, blank=True, default="")
-    description = models.TextField("Описание", blank=True, default="")
-    image = models.ImageField(
-        "Загруженная картинка",
-        upload_to="products/%Y/%m/%d",
-        blank=True,
-        null=True,
-    )
-    image_path = models.CharField(
-        "Путь к изображению",
-        max_length=255,
-        blank=True,
-        default="",
-    )
-    is_published = models.BooleanField("Показывать на сайте", default=True)
-    source_row = models.PositiveIntegerField("Номер строки в Excel", null=True, blank=True)
-    created_at = models.DateTimeField("Создан", auto_now_add=True)
-    updated_at = models.DateTimeField("Обновлен", auto_now=True)
+class FAQItem(OrderedModel):
+    question = models.CharField("Question", max_length=255)
+    answer = models.TextField("Answer")
 
-    class Meta:
-        verbose_name = "Товар"
-        verbose_name_plural = "Товары"
-        ordering = ("variety_name", "article")
+    class Meta(OrderedModel.Meta):
+        verbose_name = "FAQ item"
+        verbose_name_plural = "FAQ items"
 
     def __str__(self):
-        return f"{self.variety_name} ({self.article})"
-
-    @property
-    def display_image_url(self):
-        if self.image:
-            return self.image.url
-        if self.image_path:
-            return static(self.image_path)
-        return ""
-
-
-class PriceUpload(models.Model):
-    file = models.FileField("Excel файл", upload_to="price_uploads/%Y/%m/%d")
-    original_filename = models.CharField("Имя файла", max_length=255)
-    uploaded_by = models.ForeignKey(
-        User,
-        verbose_name="Кто загрузил",
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="price_uploads",
-    )
-    uploaded_at = models.DateTimeField("Загружен", auto_now_add=True)
-    update_requested = models.BooleanField("Запрошено обновление базы", default=False)
-    is_merged = models.BooleanField("Изменения применены", null=True, blank=True, default=None)
-    row_count = models.PositiveIntegerField("Строк в файле", default=0)
-    change_summary = models.JSONField("Сводка изменений", default=dict, blank=True)
-    parsed_payload = models.JSONField("Распарсенные строки", default=list, blank=True)
-
-    class Meta:
-        verbose_name = "Загрузка прайса"
-        verbose_name_plural = "Загрузки прайсов"
-        ordering = ("-uploaded_at",)
-
-    def __str__(self):
-        return self.original_filename
-
-    @staticmethod
-    def build_filename(moment=None):
-        local_moment = timezone.localtime(moment or timezone.now())
-        return local_moment.strftime("%d_%m_%Y-%H-%M-%S.xlsx")
-
-    @property
-    def display_filename(self):
-        if self.original_filename and PRICE_UPLOAD_FILENAME_RE.fullmatch(self.original_filename):
-            return self.original_filename
-        if self.uploaded_at:
-            return self.build_filename(self.uploaded_at)
-        return self.original_filename
-
-    @property
-    def merge_state(self):
-        if not self.update_requested:
-            return "skipped"
-        if self.is_merged is True:
-            return "merged"
-        if self.is_merged is False:
-            return "cancelled"
-        return "pending"
+        return self.question

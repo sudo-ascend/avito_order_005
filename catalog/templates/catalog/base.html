@@ -1,23 +1,57 @@
 {% load static %}
 <!doctype html>
-<html lang="ru">
+<html lang="ru-RU" prefix="og: https://ogp.me/ns#">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}{{ config.site_title }}{% endblock %}</title>
     <meta name="description" content="{% block meta_description %}{{ config.meta_description }}{% endblock %}" />
+    <meta name="keywords" content="{{ seo.keywords }}" />
+    <meta name="robots" content="{{ seo.meta_robots }}" />
+    <meta name="googlebot" content="{{ seo.meta_robots }}" />
+    <meta name="author" content="{{ config.brand_name }}" />
+    <meta name="publisher" content="{{ config.brand_name }}" />
+    <meta http-equiv="content-language" content="ru-RU" />
+    <meta name="format-detection" content="telephone=yes" />
     <meta name="theme-color" content="#073f35" />
-    {% if config.canonical_url %}
-      <link rel="canonical" href="{{ config.canonical_url }}" />
+    <link rel="canonical" href="{{ seo.canonical_url }}" />
+    <link rel="alternate" hreflang="ru-RU" href="{{ seo.canonical_url }}" />
+    <link rel="alternate" hreflang="x-default" href="{{ seo.canonical_url }}" />
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="{{ seo.sitemap_url }}" />
+    <link rel="preload" as="image" href="{{ seo.hero_image_url }}" />
+    <link rel="icon" href="{{ config.logo_url }}" />
+    <link rel="apple-touch-icon" href="{{ config.logo_url }}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ru_RU" />
+    <meta property="og:site_name" content="{{ config.brand_name }}" />
+    <meta property="og:title" content="{{ config.site_title }}" />
+    <meta property="og:description" content="{{ config.meta_description }}" />
+    <meta property="og:url" content="{{ seo.canonical_url }}" />
+    <meta property="og:image" content="{{ seo.og_image_url }}" />
+    <meta property="og:image:alt" content="{{ seo.og_image_alt }}" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="{{ config.site_title }}" />
+    <meta name="twitter:description" content="{{ config.meta_description }}" />
+    <meta name="twitter:image" content="{{ seo.og_image_url }}" />
+    <meta name="twitter:image:alt" content="{{ seo.og_image_alt }}" />
+    {% if seo.page_last_modified %}
+      <meta property="article:modified_time" content="{{ seo.page_last_modified|date:'c' }}" />
     {% endif %}
-    <link rel="icon" type="image/png" href="{% static 'logo.png' %}" />
-    <link rel="apple-touch-icon" href="{% static 'logo.png' %}" />
+    {% if config.google_site_verification %}
+      <meta name="google-site-verification" content="{{ config.google_site_verification }}" />
+    {% endif %}
+    {% if config.yandex_verification %}
+      <meta name="yandex-verification" content="{{ config.yandex_verification }}" />
+    {% endif %}
     <link rel="stylesheet" href="{% static 'css/site.css' %}" />
+    {% for schema in seo.structured_data %}
+      <script type="application/ld+json">{{ schema|safe }}</script>
+    {% endfor %}
   </head>
   <body>
     <header class="site-header" data-header>
       <a class="brand" href="{% url 'catalog:home' %}#top" aria-label="{{ config.brand_name }}">
-        <span class="brand__mark"><img src="{% static 'logo.png' %}" alt="" width="42" height="42" /></span>
+        <span class="brand__mark"><img src="{{ config.logo_url }}" alt="" width="42" height="42" /></span>
         <span>
           <span class="brand__name">{{ config.brand_name }}</span>
           <span class="brand__caption">{{ config.brand_caption }}</span>
@@ -30,15 +64,8 @@
         <a href="{% url 'catalog:home' %}#aquariums">{{ config.nav_aquariums_label }}</a>
         <a href="{% url 'catalog:home' %}#reviews">{{ config.nav_reviews_label }}</a>
         <a href="{% url 'catalog:home' %}#contacts">{{ config.nav_contacts_label }}</a>
-        {% if request.user.is_staff %}
-          <a href="{% url 'catalog:price_upload_registry' %}">Прайсы</a>
-        {% endif %}
       </nav>
       <div class="header-actions">
-        <a class="button button--small button--glass favorites-link" href="{% url 'catalog:favorite_products' %}">
-          <span>Избранное</span>
-          <span class="favorites-counter" data-favorite-count>{{ favorite_product_count|default:0 }}</span>
-        </a>
         <a class="button button--small button--glass header-contact-link" href="{% url 'catalog:home' %}#contacts">{{ config.header_contact_button_text }}</a>
         <button class="nav-toggle" type="button" data-nav-toggle aria-label="Открыть меню" aria-expanded="false">
           <span></span>
@@ -65,13 +92,13 @@
         <div>
           <div class="footer-brand-row">
             <a class="brand brand--footer" href="{% url 'catalog:home' %}#top" aria-label="{{ config.brand_name }}">
-              <span class="brand__mark"><img src="{% static 'logo.png' %}" alt="" width="38" height="38" /></span>
+              <span class="brand__mark"><img src="{{ config.logo_url }}" alt="" width="38" height="38" /></span>
               <span>
                 <span class="brand__name">{{ config.brand_name }}</span>
                 <span class="brand__caption">{{ config.brand_caption }}</span>
               </span>
             </a>
-            <a class="button button--small button--glass footer-login-button" href="{% url 'admin:index' %}">Войти</a>
+            <a class="button button--small button--glass footer-login-button" href="{% url 'admin:index' %}" rel="nofollow">Войти</a>
           </div>
           <p>{{ config.footer_text }}</p>
         </div>
