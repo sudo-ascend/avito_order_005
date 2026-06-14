@@ -57,7 +57,7 @@ class HomePageTests(TestCase):
         GalleryItem.objects.create(
             title="Showcase",
             text="Gallery item for sitemap",
-            image_path="gallery/gallery_1.webp",
+            image_path="gallery_1.webp",
             sort_order=1,
         )
 
@@ -70,7 +70,7 @@ class HomePageTests(TestCase):
 
         self.assertEqual(sitemap_response.status_code, 200)
         self.assertContains(sitemap_response, "<loc>http://testserver/</loc>", html=False)
-        self.assertContains(sitemap_response, "<image:loc>http://testserver/static/gallery/gallery_1.webp</image:loc>", html=False)
+        self.assertContains(sitemap_response, "<image:loc>http://testserver/static/gallery_1.webp</image:loc>", html=False)
 
 
 @override_settings()

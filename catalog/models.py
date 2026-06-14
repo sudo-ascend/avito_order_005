@@ -168,13 +168,13 @@ class SiteConfiguration(SingletonModel):
     def hero_image_url(self):
         if self.hero_image:
             return self.hero_image.url
-        return static("hero/hero_1.webp")
+        return static("hero_1.webp")
 
     @property
     def social_image_url(self):
         if self.social_image:
             return self.social_image.url
-        return static("hero/hero_1.webp")
+        return static("hero_1.webp")
 
     @property
     def price_file_url(self):

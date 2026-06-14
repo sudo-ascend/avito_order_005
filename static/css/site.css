@@ -653,7 +653,7 @@ input[type="file"] {
 .order {
   background:
     linear-gradient(90deg, rgba(238, 250, 244, 0.98), rgba(255, 255, 255, 0.85)),
-    url("../plants/plants_1.webp") center / cover;
+    url("../plants_1.webp") center / cover;
 }
 
 .order__wrap {
