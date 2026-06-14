@@ -1,44 +1,15 @@
 import os
 from pathlib import Path
 
-from django.core.exceptions import ImproperlyConfigured
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+DEBUG = eval(os.getenv("DJANGO_DEBUG", "False"))
 
-def env_bool(name, default=False):
-    value = os.getenv(name)
-    if value is None:
-        return default
-    return value.strip().lower() in {"1", "true", "yes", "on"}
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-only-secret-key")
 
+ALLOWED_HOSTS = [host.strip() for host in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,[::1],testserver").split(",") if host.strip()]
 
-def env_list(name, default=""):
-    value = os.getenv(name, default)
-    return [item.strip() for item in value.split(",") if item.strip()]
-
-
-def env_int(name, default=0):
-    value = os.getenv(name)
-    if value is None:
-        return default
-    return int(value)
-
-
-DEBUG = env_bool("DJANGO_DEBUG", False)
-
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
-if not SECRET_KEY:
-    if DEBUG:
-        SECRET_KEY = "dev-only-secret-key"
-    else:
-        raise ImproperlyConfigured("Set the DJANGO_SECRET_KEY environment variable.")
-
-ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,[::1],testserver")
-if not ALLOWED_HOSTS:
-    raise ImproperlyConfigured("Set the DJANGO_ALLOWED_HOSTS environment variable.")
-
-CSRF_TRUSTED_ORIGINS = env_list("DJANGO_CSRF_TRUSTED_ORIGINS")
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if origin.strip()]
 
 
 INSTALLED_APPS = [
@@ -140,12 +111,12 @@ LOGIN_URL = '/admin/login/'
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True
-SECURE_SSL_REDIRECT = env_bool('DJANGO_SECURE_SSL_REDIRECT', not DEBUG)
-SESSION_COOKIE_SECURE = env_bool('DJANGO_SESSION_COOKIE_SECURE', not DEBUG)
-CSRF_COOKIE_SECURE = env_bool('DJANGO_CSRF_COOKIE_SECURE', not DEBUG)
-SECURE_HSTS_SECONDS = env_int('DJANGO_SECURE_HSTS_SECONDS', 31536000 if not DEBUG else 0)
-SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool('DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS', not DEBUG)
-SECURE_HSTS_PRELOAD = env_bool('DJANGO_SECURE_HSTS_PRELOAD', not DEBUG)
+SECURE_SSL_REDIRECT = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
