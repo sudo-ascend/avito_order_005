@@ -1,10 +1,17 @@
+import shutil
+import tempfile
+from pathlib import Path
+
+from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
+from django.test.utils import override_settings
 from django.urls import reverse
 
-from .models import Benefit, FAQItem, GalleryItem, OrderStep, Review, SiteConfiguration
+from .models import Benefit, GalleryItem, OrderStep, Review, SiteConfiguration
 
 
 class HomePageTests(TestCase):
@@ -24,29 +31,22 @@ class HomePageTests(TestCase):
         self.assertContains(response, "Step two")
 
     def test_home_page_contains_seo_metadata_and_schema(self):
-        SiteConfiguration.objects.create(
-            canonical_url="https://aquaklon.example/",
-            seo_keywords="aquarium plants, in vitro plants",
-            google_site_verification="google-code",
-            yandex_verification="yandex-code",
-        )
-        FAQItem.objects.create(
-            question="How to choose in vitro plants?",
-            answer="Match them to light, CO2 and aquarium size.",
-            sort_order=1,
-        )
-
+        config = SiteConfiguration.objects.first() or SiteConfiguration()
+        config.telegram_url = "https://t.me/microklon"
+        config.save()
         response = self.client.get(reverse("catalog:home"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'rel="canonical" href="https://aquaklon.example/"', html=False)
+        self.assertContains(response, 'rel="canonical" href="http://testserver/"', html=False)
         self.assertContains(response, 'name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"', html=False)
         self.assertContains(response, 'property="og:type" content="website"', html=False)
         self.assertContains(response, 'name="twitter:card" content="summary_large_image"', html=False)
-        self.assertContains(response, 'name="google-site-verification" content="google-code"', html=False)
-        self.assertContains(response, 'name="yandex-verification" content="yandex-code"', html=False)
+        self.assertNotContains(response, "google-site-verification")
+        self.assertNotContains(response, "yandex-verification")
         self.assertContains(response, "application/ld+json")
-        self.assertContains(response, "How to choose in vitro plants?")
+        self.assertContains(response, 'href="https://t.me/microklon"', html=False)
+        self.assertContains(response, "Написать в Telegram")
+        self.assertContains(response, "https://t.me/microklon")
         self.assertEqual(
             response.headers["X-Robots-Tag"],
             "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
@@ -73,7 +73,19 @@ class HomePageTests(TestCase):
         self.assertContains(sitemap_response, "<image:loc>http://testserver/static/gallery-aquascape-1.webp</image:loc>", html=False)
 
 
+@override_settings()
 class AdminContentModeTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls._temp_media_dir = tempfile.mkdtemp()
+        super().setUpClass()
+        cls.enterClassContext(override_settings(MEDIA_ROOT=cls._temp_media_dir))
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(cls._temp_media_dir, ignore_errors=True)
+
     def setUp(self):
         self.user = get_user_model().objects.create_superuser(
             username="admin",
@@ -98,6 +110,63 @@ class AdminContentModeTests(TestCase):
         self.assertIn(GalleryItem, registry)
         self.assertIn(OrderStep, registry)
         self.assertIn(Review, registry)
-        self.assertIn(FAQItem, registry)
         self.assertNotIn(get_user_model(), registry)
         self.assertNotIn(Group, registry)
+
+    def test_admin_index_contains_price_file_controls(self):
+        config = SiteConfiguration.objects.first() or SiteConfiguration()
+        config.price_file_original_name = "old-price.xlsx"
+        config.price_file = "site/prices/price-list.xlsx"
+        config.save()
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("admin:index"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Обновить файл с ценами")
+        self.assertContains(response, 'name="price_file"', html=False)
+        self.assertContains(response, "old-price.xlsx")
+        self.assertContains(response, "Скачать")
+        self.assertContains(response, "Тексты и изображения")
+        self.assertContains(response, "Преимущества")
+        self.assertContains(response, "Этапы заказа")
+
+    def test_site_configuration_admin_uses_russian_labels(self):
+        SiteConfiguration.objects.get_or_create(pk=1)
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("admin:catalog_siteconfiguration_change", args=[1]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Бренд и SEO")
+        self.assertContains(response, "Первый экран")
+        self.assertContains(response, "Электронная почта")
+        self.assertContains(response, "Превью логотипа")
+
+    def test_benefit_icon_choices_are_extended(self):
+        icon_values = {value for value, _label in Benefit.ICON_CHOICES}
+
+        self.assertGreaterEqual(len(icon_values), 12)
+        self.assertTrue({"leaf", "drop", "sun", "star", "layers", "heart", "spark", "waves"}.issubset(icon_values))
+
+    def test_admin_can_upload_new_price_file_from_dashboard(self):
+        self.client.force_login(self.user)
+        upload = SimpleUploadedFile(
+            "new-prices.xlsx",
+            b"updated price content",
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+
+        response = self.client.post(
+            reverse("admin:catalog_update_price_file"),
+            {"price_file": upload},
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        config = SiteConfiguration.objects.get(pk=1)
+        self.assertEqual(config.price_file_original_name, "new-prices.xlsx")
+        self.assertEqual(config.price_file.name, "site/prices/price-list.xlsx")
+        self.assertTrue((Path(settings.MEDIA_ROOT) / "site" / "prices" / "price-list.xlsx").exists())
+        self.assertContains(response, "Файл с ценами обновлен: new-prices.xlsx")
+        self.assertContains(response, "new-prices.xlsx")

@@ -235,6 +235,40 @@ body.aquaklon-admin .admin-toolbar .btn-outline-dark:focus {
   border-color: rgba(7, 82, 70, 0.34);
 }
 
+body.aquaklon-admin .price-file-card {
+  overflow: hidden;
+}
+
+body.aquaklon-admin .price-file-card__body {
+  display: grid;
+  gap: 16px;
+  padding: 18px 16px 16px;
+}
+
+body.aquaklon-admin .price-file-card__current {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid rgba(7, 82, 70, 0.12);
+  background: rgba(238, 250, 244, 0.72);
+  border-radius: var(--radius);
+}
+
+body.aquaklon-admin .price-file-card__caption {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+body.aquaklon-admin .price-file-card input[type="file"] {
+  border-radius: var(--radius);
+}
+
+body.aquaklon-admin .price-file-card__submit {
+  width: 100%;
+}
+
 body.aquaklon-admin .button,
 body.aquaklon-admin input[type="submit"],
 body.aquaklon-admin input[type="button"],

@@ -1,11 +1,15 @@
+from pathlib import Path
+
 from django.contrib import admin
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.http import HttpResponseRedirect
-from django.urls import reverse
+from django.shortcuts import redirect
+from django.urls import path, reverse
 from django.utils.html import format_html
 
-from .models import Benefit, FAQItem, GalleryItem, OrderStep, Review, SiteConfiguration
+from .models import Benefit, GalleryItem, OrderStep, Review, SiteConfiguration
 
 
 def render_preview(image_url: str, alt: str, *, size: int = 72):
@@ -20,29 +24,69 @@ def render_preview(image_url: str, alt: str, *, size: int = 72):
     )
 
 
+PRICE_FILE_ALLOWED_EXTENSIONS = {".xlsx"}
+
+
+def get_site_configuration():
+    config, _created = SiteConfiguration.objects.get_or_create(pk=1)
+    return config
+
+
+def get_price_file_context():
+    config = SiteConfiguration.objects.first()
+    if config is None:
+        return {
+            "price_file_name": "",
+            "price_file_url": "",
+        }
+    return {
+        "price_file_name": config.price_file_name,
+        "price_file_url": config.price_file_url,
+    }
+
+
+def update_price_file_view(request):
+    if request.method != "POST":
+        return redirect("admin:index")
+
+    uploaded_file = request.FILES.get("price_file")
+    if uploaded_file is None:
+        messages.error(request, "Выберите Excel-файл для обновления прайса.")
+        return redirect("admin:index")
+
+    extension = Path(uploaded_file.name).suffix.lower()
+    if extension not in PRICE_FILE_ALLOWED_EXTENSIONS:
+        messages.error(request, "Поддерживается только формат .xlsx.")
+        return redirect("admin:index")
+
+    config = get_site_configuration()
+    if config.price_file:
+        config.price_file.delete(save=False)
+    config.price_file.save(uploaded_file.name, uploaded_file, save=False)
+    config.price_file_original_name = uploaded_file.name
+    config.save(update_fields=("price_file", "price_file_original_name"))
+
+    messages.success(request, f"Файл с ценами обновлен: {uploaded_file.name}")
+    return redirect("admin:index")
+
+
 @admin.register(SiteConfiguration)
 class SiteConfigurationAdmin(admin.ModelAdmin):
     readonly_fields = (
         "logo_preview",
         "social_image_preview",
         "hero_image_preview",
-        "about_image_preview",
-        "plants_image_preview",
     )
     fieldsets = (
         (
-            "Brand and SEO",
+            "Бренд и SEO",
             {
                 "fields": (
                     "brand_name",
                     "brand_caption",
                     "site_title",
                     "meta_description",
-                    "canonical_url",
-                    "seo_keywords",
                     "meta_robots",
-                    "google_site_verification",
-                    "yandex_verification",
                     "logo",
                     "logo_preview",
                     "social_image",
@@ -53,7 +97,7 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
             },
         ),
         (
-            "Navigation",
+            "Навигация",
             {
                 "fields": (
                     "nav_about_label",
@@ -67,7 +111,7 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
             },
         ),
         (
-            "Hero",
+            "Первый экран",
             {
                 "fields": (
                     "hero_eyebrow",
@@ -85,7 +129,7 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
             },
         ),
         (
-            "About",
+            "О нас",
             {
                 "fields": (
                     "about_eyebrow",
@@ -94,15 +138,13 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
                     "about_body_2",
                     "about_panel_title",
                     "about_panel_text",
-                    "about_image",
-                    "about_image_preview",
                 )
             },
         ),
         (
-            "Advantages Section",
+            "Блок преимуществ",
             {
-                "description": "Cards in this section are managed separately in the Benefits list.",
+                "description": "Карточки этого блока редактируются отдельно в списке «Преимущества».",
                 "fields": (
                     "advantages_eyebrow",
                     "advantages_title",
@@ -111,21 +153,16 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
             },
         ),
         (
-            "Plants",
+            "Растения",
             {
                 "fields": (
                     "plants_eyebrow",
                     "plants_title",
-                    "plants_text",
-                    "plants_panel_title",
-                    "plants_panel_text",
-                    "plants_image",
-                    "plants_image_preview",
                 )
             },
         ),
         (
-            "Gallery, Reviews and Contacts",
+            "Галерея, отзывы и контакты",
             {
                 "fields": (
                     "aquariums_eyebrow",
@@ -147,15 +184,17 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
                     "contacts_email_button_text",
                     "contacts_whatsapp_button_text",
                     "contacts_max_button_text",
+                    "contacts_telegram_button_text",
                     "whatsapp_url",
                     "max_url",
+                    "telegram_url",
                 )
             },
         ),
     )
 
     def changelist_view(self, request, extra_context=None):
-        config, _created = SiteConfiguration.objects.get_or_create(pk=1)
+        config = get_site_configuration()
         return HttpResponseRedirect(reverse("admin:catalog_siteconfiguration_change", args=[config.pk]))
 
     def has_add_permission(self, request):
@@ -167,28 +206,17 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
     def logo_preview(self, obj):
         return render_preview(obj.logo_url, obj.brand_name)
 
-    logo_preview.short_description = "Logo preview"
+    logo_preview.short_description = "Превью логотипа"
 
     def hero_image_preview(self, obj):
         return render_preview(obj.hero_image_url, obj.hero_title, size=180)
 
-    hero_image_preview.short_description = "Hero preview"
+    hero_image_preview.short_description = "Превью первого экрана"
 
     def social_image_preview(self, obj):
         return render_preview(obj.social_image_url, obj.social_image_alt or obj.site_title, size=180)
 
-    social_image_preview.short_description = "Social preview"
-
-    def about_image_preview(self, obj):
-        return render_preview(obj.about_image_url, obj.about_title, size=180)
-
-    about_image_preview.short_description = "About preview"
-
-    def plants_image_preview(self, obj):
-        return render_preview(obj.plants_image_url, obj.plants_title, size=180)
-
-    plants_image_preview.short_description = "Plants preview"
-
+    social_image_preview.short_description = "Превью для соцсетей"
 
 @admin.register(Benefit)
 class BenefitAdmin(admin.ModelAdmin):
@@ -206,7 +234,7 @@ class GalleryItemAdmin(admin.ModelAdmin):
     readonly_fields = ("image_preview_large",)
     fieldsets = (
         (
-            "Content",
+            "Содержимое",
             {
                 "fields": (
                     "title",
@@ -218,7 +246,7 @@ class GalleryItemAdmin(admin.ModelAdmin):
             },
         ),
         (
-            "Publishing",
+            "Публикация",
             {
                 "fields": (
                     "sort_order",
@@ -231,12 +259,12 @@ class GalleryItemAdmin(admin.ModelAdmin):
     def image_preview(self, obj):
         return render_preview(obj.display_image_url, obj.title, size=52)
 
-    image_preview.short_description = "Photo"
+    image_preview.short_description = "Фото"
 
     def image_preview_large(self, obj):
         return render_preview(obj.display_image_url, obj.title, size=220)
 
-    image_preview_large.short_description = "Preview"
+    image_preview_large.short_description = "Превью"
 
 
 @admin.register(OrderStep)
@@ -255,21 +283,37 @@ class ReviewAdmin(admin.ModelAdmin):
     fields = ("name", "rating", "text", "sort_order", "is_published")
 
 
-@admin.register(FAQItem)
-class FAQItemAdmin(admin.ModelAdmin):
-    list_display = ("question", "sort_order", "is_published")
-    list_editable = ("sort_order", "is_published")
-    ordering = ("sort_order", "id")
-    fields = ("question", "answer", "sort_order", "is_published")
-
-
 UserModel = get_user_model()
 if UserModel in admin.site._registry:
     admin.site.unregister(UserModel)
 if Group in admin.site._registry:
     admin.site.unregister(Group)
 
-admin.site.site_header = "Aquaklon admin"
-admin.site.site_title = "Aquaklon admin"
-admin.site.index_title = "Site content management"
+admin.site.site_header = "Админка Aquaklon"
+admin.site.site_title = "Админка Aquaklon"
+admin.site.index_title = "Управление содержимым сайта"
 admin.site.site_url = "/"
+
+_admin_site_get_urls = admin.site.get_urls
+_admin_site_each_context = admin.site.each_context
+
+
+def custom_admin_urls():
+    return [
+        path(
+            "price-file/update/",
+            admin.site.admin_view(update_price_file_view),
+            name="catalog_update_price_file",
+        ),
+        *_admin_site_get_urls(),
+    ]
+
+
+def custom_admin_each_context(request):
+    context = _admin_site_each_context(request)
+    context.update(get_price_file_context())
+    return context
+
+
+admin.site.get_urls = custom_admin_urls
+admin.site.each_context = custom_admin_each_context

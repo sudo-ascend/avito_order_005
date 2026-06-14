@@ -1,5 +1,7 @@
 __pycache__/
 *.py[cod]
+.env
+staticfiles/
 
 media/products/
 media/price_uploads/

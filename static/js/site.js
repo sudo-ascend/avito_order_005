@@ -1,3 +1,137 @@
+const DEFAULT_PRICE_LIST_URL = "media/site/prices/price-list.xlsx";
+const DEFAULT_PRICE_LIST_DOWNLOAD_NAME = "price-list.xlsx";
+const PRICE_LIST_BUTTON_LABEL = "Узнать цены";
+
+const products = [
+  {
+    image: {
+      src: "static/Alternanthera.png",
+      width: 1122,
+      height: 1402,
+      position: "center 45%",
+    },
+    title: "Альтернатера рейнека «Розаэфолия»",
+    latin: 'Alternanthera reineckii "Roseafolia"',
+    text: "Акцентное красное растение для среднего и заднего плана, добавляет композиции глубину и контраст.",
+  },
+  {
+    image: {
+      src: "static/Rotala.png",
+      width: 1122,
+      height: 1402,
+      position: "center 45%",
+    },
+    title: "Ротала ротундифолия",
+    latin: "Rotala rotundifolia",
+    text: "Популярный стебельный вид для ярких групп, мягких переходов и плотных фоновых посадок.",
+  },
+  {
+    image: {
+      src: "static/Bucephalandra.png",
+      width: 1122,
+      height: 1402,
+      position: "center 45%",
+    },
+    title: "Буцефаландра",
+    latin: "Bucephalandra",
+    text: "Медленнорастущее растение для коряг и камней, хорошо работает в детальных природных сценах.",
+  },
+  {
+    image: {
+      src: "static/Anubias.webp",
+      width: 760,
+      height: 580,
+      position: "center center",
+    },
+    title: "Анубиас нана",
+    latin: "Anubias nana",
+    text: "Неприхотливый компактный вид с плотными листьями для переднего плана, коряг и теневых участков.",
+  },
+  {
+    image: {
+      src: "static/Cryptocoryne.png",
+      width: 1122,
+      height: 1402,
+      position: "center 45%",
+    },
+    title: "Криптокорина",
+    latin: "Cryptocoryne",
+    text: "Розеточное растение для стабильных композиций, хорошо смотрится группами на среднем плане.",
+  },
+  {
+    image: {
+      src: "static/MonteCarlo.png",
+      width: 1536,
+      height: 1024,
+      position: "center center",
+    },
+    title: "Монте-Карло",
+    latin: 'Micranthemum tweediei "Monte Carlo"',
+    text: "Почвопокровное растение для плотного зелёного ковра и плавных береговых линий в акваскейпе.",
+  },
+  {
+    image: {
+      src: "static/Eleocharis.png",
+      width: 1122,
+      height: 1402,
+      position: "center 45%",
+    },
+    title: "Элеохарис",
+    latin: "Eleocharis",
+    text: "Тонкая травянистая фактура для переднего плана, полян и естественных переходов между камнями.",
+  },
+  {
+    image: {
+      src: "static/Ludwigia.webp",
+      width: 760,
+      height: 580,
+      position: "center center",
+    },
+    title: "Людвигия",
+    latin: "Ludwigia",
+    text: "Выразительное стебельное растение с тёплыми оттенками для цветовых акцентов в композиции.",
+  },
+];
+
+const resolveImageSource = (image) => image;
+
+const imageMarkup = (image, alt) => {
+  const source = resolveImageSource(image);
+  const positionStyle = source.position ? ` style="object-position: ${source.position};"` : "";
+
+  return `
+    <picture>
+      <img src="${source.src}" alt="${alt}" loading="lazy" width="${source.width ?? 760}" height="${source.height ?? 580}"${positionStyle}>
+    </picture>
+  `;
+};
+
+const renderProducts = () => {
+  const root = document.querySelector("[data-products]");
+  if (!root) return;
+
+  const priceListUrl = root.dataset.priceFileUrl || DEFAULT_PRICE_LIST_URL;
+  const priceListDownloadName = root.dataset.priceFileName || DEFAULT_PRICE_LIST_DOWNLOAD_NAME;
+
+  root.innerHTML = products
+    .map(
+      (product) => `
+        <article class="product-card">
+          ${imageMarkup(product.image, `${product.title} — аквариумное растение Aquaklon`)}
+          <div class="product-card__body">
+            <div>
+              <h3>${product.title}</h3>
+              <em>${product.latin}</em>
+            </div>
+            <p>${product.text}</p>
+            <a class="button button--primary product-card__action" href="${priceListUrl}" download="${priceListDownloadName}">${PRICE_LIST_BUTTON_LABEL}</a>
+          </div>
+        </article>
+      `,
+    )
+    .join("");
+};
+
 const initHeader = () => {
   const header = document.querySelector("[data-header]");
   const nav = document.querySelector("[data-nav]");
@@ -99,6 +233,7 @@ const initFlashMessages = () => {
   });
 };
 
+renderProducts();
 initHeader();
 initReveal();
 initReviewsToggle();

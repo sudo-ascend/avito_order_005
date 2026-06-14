@@ -20,11 +20,11 @@
     <div class="mb-4">
       <div class="d-flex flex-wrap align-items-center gap-2">
         <div class="admin-toolbar d-flex gap-2 flex-wrap">
-          <a class="btn btn-sm btn-outline-dark text-black" href="{% url 'admin:catalog_siteconfiguration_changelist' %}">Texts and images</a>
-          <a class="btn btn-sm btn-outline-dark text-black" href="{% url 'admin:catalog_benefit_changelist' %}">Benefits</a>
-          <a class="btn btn-sm btn-outline-dark text-black" href="{% url 'admin:catalog_orderstep_changelist' %}">Order steps</a>
-          <a class="btn btn-sm btn-outline-dark text-black" href="{% url 'admin:catalog_galleryitem_changelist' %}">Gallery</a>
-          <a class="btn btn-sm btn-outline-dark text-black" href="{% url 'admin:catalog_review_changelist' %}">Reviews</a>
+          <a class="btn btn-sm btn-outline-dark text-black" href="{% url 'admin:catalog_siteconfiguration_changelist' %}">Тексты и изображения</a>
+          <a class="btn btn-sm btn-outline-dark text-black" href="{% url 'admin:catalog_benefit_changelist' %}">Преимущества</a>
+          <a class="btn btn-sm btn-outline-dark text-black" href="{% url 'admin:catalog_orderstep_changelist' %}">Этапы заказа</a>
+          <a class="btn btn-sm btn-outline-dark text-black" href="{% url 'admin:catalog_galleryitem_changelist' %}">Галерея</a>
+          <a class="btn btn-sm btn-outline-dark text-black" href="{% url 'admin:catalog_review_changelist' %}">Отзывы</a>
         </div>
       </div>
     </div>
@@ -36,6 +36,31 @@
 
   <div class="col-12 col-lg-4">
     <aside id="content-related" class="admin-sidebar d-grid gap-4">
+      <div class="module price-file-card">
+        <h2>Файл с ценами</h2>
+        <div class="price-file-card__body">
+          <form method="post" action="{% url 'admin:catalog_update_price_file' %}" enctype="multipart/form-data" class="d-grid gap-3">
+            {% csrf_token %}
+            <div>
+              <label class="form-label fw-semibold" for="id_price_file">Обновить файл с ценами</label>
+              <input class="form-control" id="id_price_file" type="file" name="price_file" accept=".xlsx" required>
+            </div>
+
+            <div class="price-file-card__current">
+              <span class="price-file-card__caption">Текущий файл</span>
+              {% if price_file_name and price_file_url %}
+                <strong>{{ price_file_name }}</strong>
+                <a class="btn btn-sm btn-outline-dark text-black align-self-start" href="{{ price_file_url }}" download>Скачать</a>
+              {% else %}
+                <span class="text-muted">Файл пока не загружен.</span>
+              {% endif %}
+            </div>
+
+            <button class="button default price-file-card__submit" type="submit">Обновить файл с ценами</button>
+          </form>
+        </div>
+      </div>
+
       <div class="module" id="recent-actions-module">
         <h2>{% translate 'Recent actions' %}</h2>
         <h3>{% translate 'My actions' %}</h3>

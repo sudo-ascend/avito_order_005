@@ -1,5 +1,4 @@
 import json
-from dataclasses import dataclass
 from datetime import datetime
 from urllib.parse import urlsplit
 
@@ -9,127 +8,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import http_date
 
-from .models import Benefit, FAQItem, GalleryItem, OrderStep, Review, SiteConfiguration
-
-
-DEFAULT_KEYWORDS = (
-    "\u043c\u0435\u0440\u0438\u0441\u0442\u0435\u043c\u043d\u044b\u0435 "
-    "\u0430\u043a\u0432\u0430\u0440\u0438\u0443\u043c\u043d\u044b\u0435 "
-    "\u0440\u0430\u0441\u0442\u0435\u043d\u0438\u044f, in vitro "
-    "\u0440\u0430\u0441\u0442\u0435\u043d\u0438\u044f, \u0440\u0430\u0441\u0442\u0435\u043d\u0438\u044f "
-    "\u0434\u043b\u044f \u0430\u043a\u0432\u0430\u0440\u0438\u0443\u043c\u0430, aquascape, "
-    "Aquaklon, \u0430\u043a\u0432\u0430\u0440\u0438\u0443\u043c\u043d\u044b\u0435 "
-    "\u0440\u0430\u0441\u0442\u0435\u043d\u0438\u044f \u041c\u043e\u0441\u043a\u0432\u0430"
-)
-DEFAULT_FAQ_EYEBROW = "FAQ"
-DEFAULT_FAQ_TITLE = (
-    "\u0427\u0430\u0441\u0442\u044b\u0435 \u0432\u043e\u043f\u0440\u043e\u0441\u044b "
-    "\u043f\u0440\u043e \u043c\u0435\u0440\u0438\u0441\u0442\u0435\u043c\u043d\u044b\u0435 "
-    "\u0430\u043a\u0432\u0430\u0440\u0438\u0443\u043c\u043d\u044b\u0435 \u0440\u0430\u0441\u0442\u0435\u043d\u0438\u044f"
-)
-DEFAULT_FAQ_LEAD = (
-    "\u0421\u043e\u0431\u0440\u0430\u043b\u0438 \u043e\u0442\u0432\u0435\u0442\u044b \u043d\u0430 "
-    "\u0432\u043e\u043f\u0440\u043e\u0441\u044b, \u043a\u043e\u0442\u043e\u0440\u044b\u0435 "
-    "\u0447\u0430\u0449\u0435 \u0432\u0441\u0435\u0433\u043e \u0432\u043e\u0437\u043d\u0438\u043a\u0430\u044e\u0442 "
-    "\u043f\u0435\u0440\u0435\u0434 \u0437\u0430\u043f\u0443\u0441\u043a\u043e\u043c \u0438\u043b\u0438 "
-    "\u043f\u0435\u0440\u0435\u0441\u0430\u0434\u043a\u043e\u0439 \u0430\u043a\u0432\u0430\u0440\u0438\u0443\u043c\u0430."
-)
-
-
-@dataclass(frozen=True)
-class FaqEntry:
-    question: str
-    answer: str
-
-
-DEFAULT_FAQ_ITEMS = (
-    FaqEntry(
-        question=(
-            "\u041a\u0430\u043a \u0432\u044b\u0431\u0440\u0430\u0442\u044c "
-            "\u043c\u0435\u0440\u0438\u0441\u0442\u0435\u043c\u043d\u044b\u0435 "
-            "\u0430\u043a\u0432\u0430\u0440\u0438\u0443\u043c\u043d\u044b\u0435 "
-            "\u0440\u0430\u0441\u0442\u0435\u043d\u0438\u044f \u0434\u043b\u044f "
-            "\u043d\u043e\u0432\u043e\u0433\u043e \u0430\u043a\u0432\u0430\u0440\u0438\u0443\u043c\u0430?"
-        ),
-        answer=(
-            "\u041d\u0430\u0447\u0438\u043d\u0430\u0442\u044c \u0441\u0442\u043e\u0438\u0442 "
-            "\u0441 \u0443\u0447\u0435\u0442\u0430 \u043e\u0431\u044a\u0435\u043c\u0430 "
-            "\u0430\u043a\u0432\u0430\u0440\u0438\u0443\u043c\u0430, \u0441\u0432\u0435\u0442\u0430, "
-            "\u043f\u043e\u0434\u0430\u0447\u0438 CO2 \u0438 \u0437\u0430\u0434\u0430\u0447\u0438 "
-            "\u043a\u043e\u043c\u043f\u043e\u0437\u0438\u0446\u0438\u0438. \u0414\u043b\u044f "
-            "\u043f\u0435\u0440\u0432\u043e\u0433\u043e \u0437\u0430\u043f\u0443\u0441\u043a\u0430 "
-            "\u0447\u0430\u0441\u0442\u043e \u0432\u044b\u0431\u0438\u0440\u0430\u044e\u0442 "
-            "\u043d\u0435\u043f\u0440\u0438\u0445\u043e\u0442\u043b\u0438\u0432\u044b\u0435 "
-            "\u043f\u043e\u0447\u0432\u043e\u043f\u043e\u043a\u0440\u043e\u0432\u043d\u044b\u0435, "
-            "\u0440\u043e\u0437\u0435\u0442\u043e\u0447\u043d\u044b\u0435 \u0438 "
-            "\u0441\u0442\u0435\u0431\u0435\u043b\u044c\u043d\u044b\u0435 \u0432\u0438\u0434\u044b, "
-            "\u043a\u043e\u0442\u043e\u0440\u044b\u0435 \u043b\u0435\u0433\u043a\u043e "
-            "\u0430\u0434\u0430\u043f\u0442\u0438\u0440\u0443\u044e\u0442\u0441\u044f."
-        ),
-    ),
-    FaqEntry(
-        question=(
-            "\u0427\u0435\u043c in vitro \u0440\u0430\u0441\u0442\u0435\u043d\u0438\u044f "
-            "\u043e\u0442\u043b\u0438\u0447\u0430\u044e\u0442\u0441\u044f \u043e\u0442 "
-            "\u043e\u0431\u044b\u0447\u043d\u044b\u0445 \u0430\u043a\u0432\u0430\u0440\u0438\u0443\u043c\u043d\u044b\u0445 "
-            "\u0440\u0430\u0441\u0442\u0435\u043d\u0438\u0439?"
-        ),
-        answer=(
-            "\u041c\u0435\u0440\u0438\u0441\u0442\u0435\u043c\u043d\u044b\u0435 "
-            "\u0440\u0430\u0441\u0442\u0435\u043d\u0438\u044f \u0432\u044b\u0440\u0430\u0449\u0438\u0432\u0430\u044e\u0442\u0441\u044f "
-            "\u0432 \u0441\u0442\u0435\u0440\u0438\u043b\u044c\u043d\u043e\u0439 \u0441\u0440\u0435\u0434\u0435, "
-            "\u043f\u043e\u044d\u0442\u043e\u043c\u0443 \u0432 \u0431\u0430\u043d\u043e\u0447\u043a\u0435 "
-            "\u043d\u0435\u0442 \u0443\u043b\u0438\u0442\u043e\u043a, \u0432\u043e\u0434\u043e\u0440\u043e\u0441\u043b\u0435\u0439 "
-            "\u0438 \u043d\u0435\u0436\u0435\u043b\u0430\u0442\u0435\u043b\u044c\u043d\u044b\u0445 "
-            "\u043f\u0440\u0438\u043c\u0435\u0441\u0435\u0439. \u042d\u0442\u043e \u0443\u0434\u043e\u0431\u043d\u043e "
-            "\u0434\u043b\u044f \u0447\u0438\u0441\u0442\u043e\u0433\u043e \u0441\u0442\u0430\u0440\u0442\u0430, "
-            "\u0442\u043e\u0447\u043d\u043e\u0439 \u043f\u043e\u0441\u0430\u0434\u043a\u0438 \u0438 "
-            "\u043f\u043b\u043e\u0442\u043d\u044b\u0445 \u0430\u043a\u0432\u0430\u0441\u043a\u0435\u0439\u043f-\u043a\u043e\u043c\u043f\u043e\u0437\u0438\u0446\u0438\u0439."
-        ),
-    ),
-    FaqEntry(
-        question=(
-            "\u041c\u043e\u0436\u043d\u043e \u043b\u0438 \u0432\u044b\u0441\u0430\u0436\u0438\u0432\u0430\u0442\u044c "
-            "\u043c\u0435\u0440\u0438\u0441\u0442\u0435\u043c\u043d\u044b\u0435 "
-            "\u0440\u0430\u0441\u0442\u0435\u043d\u0438\u044f \u0431\u0435\u0437 CO2?"
-        ),
-        answer=(
-            "\u0414\u0430, \u0447\u0430\u0441\u0442\u044c \u0432\u0438\u0434\u043e\u0432 "
-            "\u043c\u043e\u0436\u0435\u0442 \u0440\u0430\u0441\u0442\u0438 \u0438 \u0431\u0435\u0437 "
-            "\u0434\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u0435\u043b\u044c\u043d\u043e\u0439 "
-            "\u043f\u043e\u0434\u0430\u0447\u0438 CO2, \u0435\u0441\u043b\u0438 "
-            "\u043f\u043e\u0434\u043e\u0431\u0440\u0430\u043d\u044b \u043f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u044b\u0439 "
-            "\u0441\u0432\u0435\u0442, \u043f\u0438\u0442\u0430\u0442\u0435\u043b\u044c\u043d\u044b\u0439 "
-            "\u0433\u0440\u0443\u043d\u0442 \u0438 \u0441\u0442\u0430\u0431\u0438\u043b\u044c\u043d\u044b\u0439 "
-            "\u0443\u0445\u043e\u0434. \u0414\u043b\u044f \u0431\u044b\u0441\u0442\u0440\u043e\u0433\u043e "
-            "\u043f\u043e\u043a\u0440\u043e\u0432\u0430 \u0438 \u0441\u043b\u043e\u0436\u043d\u044b\u0445 "
-            "\u043a\u043e\u043c\u043f\u043e\u0437\u0438\u0446\u0438\u0439 CO2 \u0432\u0441\u0451 \u0436\u0435 "
-            "\u0434\u0430\u0451\u0442 \u0431\u043e\u043b\u0435\u0435 \u043f\u0440\u0435\u0434\u0441\u043a\u0430\u0437\u0443\u0435\u043c\u044b\u0439 "
-            "\u0440\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442."
-        ),
-    ),
-    FaqEntry(
-        question=(
-            "\u041a\u0430\u043a \u0437\u0430\u043a\u0430\u0437\u0430\u0442\u044c "
-            "\u0440\u0430\u0441\u0442\u0435\u043d\u0438\u044f Aquaklon \u0432 "
-            "\u041c\u043e\u0441\u043a\u0432\u0435 \u0438 \u0443\u0442\u043e\u0447\u043d\u0438\u0442\u044c "
-            "\u043d\u0430\u043b\u0438\u0447\u0438\u0435?"
-        ),
-        answer=(
-            "\u0411\u044b\u0441\u0442\u0440\u0435\u0435 \u0432\u0441\u0435\u0433\u043e "
-            "\u043d\u0430\u043f\u0438\u0441\u0430\u0442\u044c \u0438\u043b\u0438 "
-            "\u043f\u043e\u0437\u0432\u043e\u043d\u0438\u0442\u044c \u043f\u043e "
-            "\u043a\u043e\u043d\u0442\u0430\u043a\u0442\u0430\u043c \u043d\u0430 "
-            "\u0441\u0430\u0439\u0442\u0435: \u043c\u043e\u0436\u043d\u043e "
-            "\u0443\u0442\u043e\u0447\u043d\u0438\u0442\u044c \u0430\u043a\u0442\u0443\u0430\u043b\u044c\u043d\u043e\u0435 "
-            "\u043d\u0430\u043b\u0438\u0447\u0438\u0435, \u043f\u043e\u0434\u043e\u0431\u0440\u0430\u0442\u044c "
-            "\u0440\u0430\u0441\u0442\u0435\u043d\u0438\u044f \u043f\u043e\u0434 "
-            "\u043e\u0431\u044a\u0435\u043c \u0430\u043a\u0432\u0430\u0440\u0438\u0443\u043c\u0430 \u0438 "
-            "\u043f\u043e\u043b\u0443\u0447\u0438\u0442\u044c \u0440\u0435\u043a\u043e\u043c\u0435\u043d\u0434\u0430\u0446\u0438\u0438 "
-            "\u043f\u043e \u043f\u043e\u0441\u0430\u0434\u043a\u0435."
-        ),
-    ),
-)
+from .models import Benefit, GalleryItem, OrderStep, Review, SiteConfiguration
 
 
 def get_site_configuration():
@@ -146,8 +25,6 @@ def get_absolute_url(request, path_or_url):
 
 
 def get_canonical_url(request, config):
-    if config.canonical_url:
-        return config.canonical_url
     return request.build_absolute_uri(reverse("catalog:home"))
 
 
@@ -165,13 +42,6 @@ def get_site_last_modified():
     return datetime.fromtimestamp(max(mtimes), tz=timezone.get_current_timezone())
 
 
-def get_faq_items():
-    faq_items = list(FAQItem.objects.filter(is_published=True))
-    if faq_items:
-        return faq_items
-    return list(DEFAULT_FAQ_ITEMS)
-
-
 def build_image_entries(request, config, gallery_items):
     raw_images = [
         {
@@ -183,16 +53,6 @@ def build_image_entries(request, config, gallery_items):
             "loc": get_absolute_url(request, config.hero_image_url),
             "caption": config.hero_title,
             "title": config.brand_name,
-        },
-        {
-            "loc": get_absolute_url(request, config.about_image_url),
-            "caption": config.about_title,
-            "title": config.about_panel_title,
-        },
-        {
-            "loc": get_absolute_url(request, config.plants_image_url),
-            "caption": config.plants_title,
-            "title": config.plants_panel_title,
         },
     ]
     raw_images.extend(
@@ -216,14 +76,14 @@ def build_image_entries(request, config, gallery_items):
     return deduped
 
 
-def build_structured_data(request, config, canonical_url, page_last_modified, reviews, faq_items):
+def build_structured_data(request, config, canonical_url, page_last_modified, reviews):
     organization_id = f"{canonical_url}#organization"
     website_id = f"{canonical_url}#website"
     webpage_id = f"{canonical_url}#webpage"
     logo_url = get_absolute_url(request, config.logo_url)
     social_image_url = get_absolute_url(request, config.social_image_url)
     review_items = list(reviews[:3])
-    same_as = [url for url in (config.whatsapp_url, config.max_url) if url]
+    same_as = [url for url in (config.whatsapp_url, config.max_url, config.telegram_url) if url]
 
     organization_schema = {
         "@context": "https://schema.org",
@@ -304,25 +164,9 @@ def build_structured_data(request, config, canonical_url, page_last_modified, re
     if page_last_modified:
         webpage_schema["dateModified"] = page_last_modified.isoformat()
 
-    faq_schema = {
-        "@context": "https://schema.org",
-        "@type": "FAQPage",
-        "mainEntity": [
-            {
-                "@type": "Question",
-                "name": item.question,
-                "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": item.answer,
-                },
-            }
-            for item in faq_items
-        ],
-    }
-
     return [
         json.dumps(schema, ensure_ascii=False, separators=(",", ":"))
-        for schema in (organization_schema, website_schema, webpage_schema, faq_schema)
+        for schema in (organization_schema, website_schema, webpage_schema)
     ]
 
 
@@ -332,13 +176,11 @@ def build_home_context(request):
     gallery_items = list(GalleryItem.objects.filter(is_published=True))
     order_steps = list(OrderStep.objects.filter(is_published=True))
     reviews = list(Review.objects.filter(is_published=True))
-    faq_items = get_faq_items()
     canonical_url = get_canonical_url(request, config)
     page_last_modified = get_site_last_modified()
 
     seo_context = {
         "canonical_url": canonical_url,
-        "keywords": config.seo_keywords or DEFAULT_KEYWORDS,
         "meta_robots": config.meta_robots,
         "og_image_url": get_absolute_url(request, config.social_image_url),
         "og_image_alt": config.social_image_alt or config.site_title,
@@ -352,7 +194,6 @@ def build_home_context(request):
             canonical_url=canonical_url,
             page_last_modified=page_last_modified,
             reviews=reviews,
-            faq_items=faq_items,
         ),
     }
 
@@ -362,10 +203,6 @@ def build_home_context(request):
         "gallery_items": gallery_items,
         "order_steps": order_steps,
         "reviews": reviews,
-        "faq_items": faq_items,
-        "faq_eyebrow": DEFAULT_FAQ_EYEBROW,
-        "faq_title": DEFAULT_FAQ_TITLE,
-        "faq_lead": DEFAULT_FAQ_LEAD,
         "seo": seo_context,
     }
 

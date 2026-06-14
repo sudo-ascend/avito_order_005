@@ -1,4 +1,5 @@
 {% extends "catalog/base.html" %}
+{% load static %}
 
 {% block content %}
   <main id="top">
@@ -40,14 +41,17 @@
           <p>{{ config.about_body_2 }}</p>
         </div>
         <div class="about-card">
-          <img
-            src="{{ config.about_image_url }}"
-            alt="{{ config.about_title }}"
-            width="1000"
-            height="1100"
-            loading="lazy"
-            decoding="async"
-          />
+          <picture>
+            <source srcset="{% static 'feature-closeup.avif' %}" type="image/avif" />
+            <img
+              src="{% static 'feature-closeup.webp' %}"
+              alt="Крупный план живого аквариумного растения на коряге"
+              width="1000"
+              height="1100"
+              loading="lazy"
+              decoding="async"
+            />
+          </picture>
           <div class="about-card__panel">
             <strong>{{ config.about_panel_title }}</strong>
             <span>{{ config.about_panel_text }}</span>
@@ -82,27 +86,19 @@
     </section>
 
     <section class="section section--cream plants section-observe" id="plants" aria-labelledby="plants-title">
-      <div class="container split">
-        <div class="section-copy">
-          <p class="eyebrow">{{ config.plants_eyebrow }}</p>
-          <h2 id="plants-title">{{ config.plants_title }}</h2>
-          <p>{{ config.plants_text }}</p>
-          <a class="button button--primary" href="#contacts">{{ config.header_contact_button_text }}</a>
-        </div>
-        <div class="about-card about-card--plants">
-          <img
-            src="{{ config.plants_image_url }}"
-            alt="{{ config.plants_title }}"
-            width="1000"
-            height="1100"
-            loading="lazy"
-            decoding="async"
-          />
-          <div class="about-card__panel">
-            <strong>{{ config.plants_panel_title }}</strong>
-            <span>{{ config.plants_panel_text }}</span>
+      <div class="container">
+        <div class="section-head section-head--wide">
+          <div>
+            <p class="eyebrow">{{ config.plants_eyebrow }}</p>
+            <h2 id="plants-title">{{ config.plants_title }}</h2>
           </div>
         </div>
+        <div
+          class="product-grid"
+          data-products
+          data-price-file-url="{{ config.price_file_url|default:'media/site/prices/price-list.xlsx' }}"
+          data-price-file-name="{{ config.price_file_name|default:'price-list.xlsx' }}"
+        ></div>
       </div>
     </section>
 
@@ -179,26 +175,6 @@
       </div>
     </section>
 
-    {% if faq_items %}
-      <section class="section section--light faq section-observe" id="faq" aria-labelledby="faq-title">
-        <div class="container">
-          <div class="section-head">
-            <p class="eyebrow">{{ faq_eyebrow }}</p>
-            <h2 id="faq-title">{{ faq_title }}</h2>
-            <p>{{ faq_lead }}</p>
-          </div>
-          <div class="faq-list">
-            {% for item in faq_items %}
-              <article class="faq-item">
-                <h3>{{ item.question }}</h3>
-                <p>{{ item.answer }}</p>
-              </article>
-            {% endfor %}
-          </div>
-        </div>
-      </section>
-    {% endif %}
-
     <section class="section contacts section-observe" id="contacts" aria-labelledby="contacts-title">
       <div class="container contact-card">
         <div>
@@ -225,6 +201,10 @@
           <a class="button button--secondary" href="mailto:{{ config.contact_email }}">{{ config.contacts_email_button_text }}</a>
           <a class="button button--whatsapp" href="{{ config.whatsapp_url }}" target="_blank" rel="noopener noreferrer">{{ config.contacts_whatsapp_button_text }}</a>
           <a class="button button--max" href="{{ config.max_url }}" target="_blank" rel="noopener noreferrer">{{ config.contacts_max_button_text }}</a>
+          {% if config.telegram_url %}
+            <a class="button button--telegram" href="{{ config.telegram_url }}" target="_blank" rel="noopener noreferrer">{{ config.contacts_telegram_button_text }}</a>
+          {% endif %}
+          <a class="button button--primary contact-actions__price" href="{{ config.price_file_url|default:'media/site/prices/price-list.xlsx' }}" download="{{ config.price_file_name|default:'price-list.xlsx' }}">Узнать цены</a>
         </div>
       </div>
     </section>
