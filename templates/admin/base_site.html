@@ -5,8 +5,8 @@
 
 {% block extrahead %}
   {{ block.super }}
-  <link rel="icon" href="{% static 'logo.png' %}" type="image/png" />
-  <link rel="shortcut icon" href="{% static 'logo.png' %}" type="image/png" />
+  <link rel="icon" href="{% static 'favicon.ico' %}" />
+  <link rel="shortcut icon" href="{% static 'favicon.ico' %}" />
   <link rel="stylesheet" href="{% static 'css/admin-theme.css' %}" />
 {% endblock %}
 
@@ -15,7 +15,7 @@
 {% block branding %}
   <div id="site-name">
     <a class="aquaklon-admin-brand" href="{% url 'catalog:home' %}" target="_blank" rel="noreferrer">
-      <img class="aquaklon-admin-brand__logo" src="{% static 'logo.png' %}" alt="" width="56" height="56" />
+      <img class="aquaklon-admin-brand__logo" src="{% static 'favicon.ico' %}" alt="" width="56" height="56" />
       <span class="aquaklon-admin-brand__text">
         <strong>Aquaklon</strong>
         <span>Админка контента сайта</span>

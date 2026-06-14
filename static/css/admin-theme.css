@@ -222,6 +222,13 @@ body.aquaklon-admin .change-list #changelist-filter h3 {
   background: linear-gradient(135deg, var(--green-900), var(--green-700));
 }
 
+body.aquaklon-admin .module caption a,
+body.aquaklon-admin .module caption a:visited,
+body.aquaklon-admin .dashboard .module caption a,
+body.aquaklon-admin .dashboard .module caption a:visited {
+  color: var(--paper) !important;
+}
+
 body.aquaklon-admin .admin-toolbar .btn-outline-dark {
   color: var(--green-950);
   border-color: rgba(7, 82, 70, 0.28);
@@ -419,30 +426,81 @@ body.aquaklon-admin .help-tooltip {
 body.login.aquaklon-admin {
   color-scheme: light;
   background:
-    radial-gradient(circle at top left, rgba(39, 199, 183, 0.2), transparent 30%),
-    radial-gradient(circle at 85% 10%, rgba(11, 109, 94, 0.18), transparent 26%),
-    linear-gradient(180deg, #f7fbf8 0%, #edf7ef 100%);
+    radial-gradient(circle at top left, rgba(39, 199, 183, 0.16), transparent 30%),
+    radial-gradient(circle at 85% 10%, rgba(11, 109, 94, 0.14), transparent 26%),
+    linear-gradient(180deg, #dfece7 0%, #cddfd8 100%);
 }
 
-body.login.aquaklon-admin .login {
-  background: rgba(251, 252, 248, 0.88);
-  border: 1px solid rgba(7, 82, 70, 0.12);
+body.login.aquaklon-admin #container {
+  background:
+    linear-gradient(180deg, rgba(9, 33, 29, 0.96), rgba(5, 26, 23, 0.98));
+  border: 1px solid rgba(189, 238, 232, 0.16);
   border-radius: 20px;
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(18px);
-  color: var(--graphite);
+  box-shadow: 0 28px 80px rgba(4, 23, 19, 0.34);
+  backdrop-filter: blur(20px);
+  color: var(--paper);
 }
 
-body.login.aquaklon-admin .login h1,
-body.login.aquaklon-admin .login h2,
-body.login.aquaklon-admin .login h3,
-body.login.aquaklon-admin .login label,
-body.login.aquaklon-admin .login p {
-  color: var(--graphite);
+body.login.aquaklon-admin #content-main,
+body.login.aquaklon-admin h1,
+body.login.aquaklon-admin h2,
+body.login.aquaklon-admin h3,
+body.login.aquaklon-admin label,
+body.login.aquaklon-admin p {
+  color: var(--paper);
 }
 
-body.login.aquaklon-admin .login .form-row input {
+body.login.aquaklon-admin #content-main,
+body.login.aquaklon-admin #login-form {
+  color: inherit;
+}
+
+body.login.aquaklon-admin .form-row {
+  border-bottom-color: rgba(189, 238, 232, 0.12);
+}
+
+body.login.aquaklon-admin .form-row label {
+  color: rgba(251, 252, 248, 0.9);
+}
+
+body.login.aquaklon-admin .form-row input {
+  border: 1px solid rgba(189, 238, 232, 0.22);
   border-radius: 12px;
+  background: rgba(236, 250, 244, 0.08);
+  color: var(--paper);
+}
+
+body.login.aquaklon-admin .form-row input:focus {
+  border-color: rgba(39, 199, 183, 0.62);
+  box-shadow: 0 0 0 3px rgba(39, 199, 183, 0.14);
+  outline: 0;
+}
+
+body.login.aquaklon-admin .form-row input::placeholder {
+  color: rgba(251, 252, 248, 0.46);
+}
+
+body.login.aquaklon-admin .submit-row {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+body.login.aquaklon-admin .submit-row input {
+  width: 100%;
+}
+
+body.login.aquaklon-admin .errornote,
+body.login.aquaklon-admin .errorlist,
+body.login.aquaklon-admin .help,
+body.login.aquaklon-admin .password-reset-link,
+body.login.aquaklon-admin .password-reset-link a {
+  color: rgba(251, 252, 248, 0.78);
+}
+
+body.login.aquaklon-admin .errornote {
+  border: 1px solid rgba(255, 149, 149, 0.22);
+  background: rgba(184, 79, 79, 0.18);
 }
 
 body.login.aquaklon-admin #header {
@@ -452,12 +510,6 @@ body.login.aquaklon-admin #header {
 
 body.login.aquaklon-admin #content {
   padding-top: 60px;
-}
-
-body.login.aquaklon-admin .submit-row {
-  background: transparent;
-  border: 0;
-  box-shadow: none;
 }
 
 @media (max-width: 767px) {

@@ -162,19 +162,19 @@ class SiteConfiguration(SingletonModel):
     def logo_url(self):
         if self.logo:
             return self.logo.url
-        return static("logo.png")
+        return static("favicon.ico")
 
     @property
     def hero_image_url(self):
         if self.hero_image:
             return self.hero_image.url
-        return static("hero-aquarium.webp")
+        return static("hero/hero_1.webp")
 
     @property
     def social_image_url(self):
         if self.social_image:
             return self.social_image.url
-        return static("og-aquaklon.jpg")
+        return static("hero/hero_1.webp")
 
     @property
     def price_file_url(self):

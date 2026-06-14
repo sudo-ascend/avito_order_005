@@ -21,11 +21,17 @@ def get_site_configuration():
 def get_absolute_url(request, path_or_url):
     if not path_or_url:
         return ""
-    return request.build_absolute_uri(path_or_url)
+    absolute_url = request.build_absolute_uri(path_or_url)
+    if settings.DEBUG:
+        return absolute_url.replace("https://", "http://", 1)
+    return absolute_url
 
 
 def get_canonical_url(request, config):
-    return request.build_absolute_uri(reverse("catalog:home"))
+    canonical_url = request.build_absolute_uri(reverse("catalog:home"))
+    if settings.DEBUG:
+        return canonical_url.replace("https://", "http://", 1)
+    return canonical_url
 
 
 def get_site_last_modified():
@@ -187,7 +193,7 @@ def build_home_context(request):
         "hero_image_url": get_absolute_url(request, config.hero_image_url),
         "logo_url": get_absolute_url(request, config.logo_url),
         "page_last_modified": page_last_modified,
-        "sitemap_url": request.build_absolute_uri(reverse("catalog:sitemap")),
+        "sitemap_url": get_absolute_url(request, reverse("catalog:sitemap")),
         "structured_data": build_structured_data(
             request=request,
             config=config,
@@ -223,7 +229,7 @@ def robots_txt(request):
         request,
         "catalog/robots.txt",
         {
-            "sitemap_url": request.build_absolute_uri(reverse("catalog:sitemap")),
+            "sitemap_url": get_absolute_url(request, reverse("catalog:sitemap")),
             "host": urlsplit(canonical_url).netloc or request.get_host(),
         },
         content_type="text/plain; charset=utf-8",

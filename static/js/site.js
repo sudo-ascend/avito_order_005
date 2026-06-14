@@ -5,7 +5,7 @@ const PRICE_LIST_BUTTON_LABEL = "Узнать цены";
 const products = [
   {
     image: {
-      src: "static/Alternanthera.png",
+      src: "static/plants/plants_1.webp",
       width: 1122,
       height: 1402,
       position: "center 45%",
@@ -16,7 +16,7 @@ const products = [
   },
   {
     image: {
-      src: "static/Rotala.png",
+      src: "static/plants/plants_2.webp",
       width: 1122,
       height: 1402,
       position: "center 45%",
@@ -27,7 +27,7 @@ const products = [
   },
   {
     image: {
-      src: "static/Bucephalandra.png",
+      src: "static/plants/plants_3.webp",
       width: 1122,
       height: 1402,
       position: "center 45%",
@@ -38,7 +38,7 @@ const products = [
   },
   {
     image: {
-      src: "static/Anubias.webp",
+      src: "static/plants/plants_4.webp",
       width: 760,
       height: 580,
       position: "center center",
@@ -49,7 +49,7 @@ const products = [
   },
   {
     image: {
-      src: "static/Cryptocoryne.png",
+      src: "static/plants/plants_5.webp",
       width: 1122,
       height: 1402,
       position: "center 45%",
@@ -60,7 +60,7 @@ const products = [
   },
   {
     image: {
-      src: "static/MonteCarlo.png",
+      src: "static/plants/plants_6.webp",
       width: 1536,
       height: 1024,
       position: "center center",
@@ -71,7 +71,7 @@ const products = [
   },
   {
     image: {
-      src: "static/Eleocharis.png",
+      src: "static/plants/plants_7.webp",
       width: 1122,
       height: 1402,
       position: "center 45%",
@@ -82,7 +82,7 @@ const products = [
   },
   {
     image: {
-      src: "static/Ludwigia.webp",
+      src: "static/plants/plants_8.webp",
       width: 760,
       height: 580,
       position: "center center",
