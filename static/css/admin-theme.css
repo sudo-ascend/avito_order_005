@@ -518,12 +518,23 @@ body.login.aquaklon-admin #content {
   }
 
   body.aquaklon-admin #header {
-    min-height: 100px;
-    padding: 18px 14px;
+    min-height: 130px;
+    padding: 20px 14px 24px;
   }
 
   body.aquaklon-admin .aquaklon-admin-brand__logo {
     width: 44px;
     height: 44px;
+  }
+
+  body.aquaklon-admin:not(.login) .dashboard .module tbody th,
+  body.aquaklon-admin:not(.login) .dashboard .module tbody th a,
+  body.aquaklon-admin:not(.login) .dashboard .module tbody th a:visited,
+  body.aquaklon-admin:not(.login) .form-row label,
+  body.aquaklon-admin:not(.login) .aligned label,
+  body.aquaklon-admin:not(.login) p.file-upload,
+  body.aquaklon-admin:not(.login) span.clearable-file-input,
+  body.aquaklon-admin:not(.login) span.clearable-file-input label {
+    color: var(--graphite);
   }
 }
