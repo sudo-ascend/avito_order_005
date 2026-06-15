@@ -61,6 +61,31 @@
         </div>
       </div>
 
+      <div class="module price-file-card">
+        <h2>Условия заказа и доставки</h2>
+        <div class="price-file-card__body">
+          <form method="post" action="{% url 'admin:catalog_update_delivery_terms_file' %}" enctype="multipart/form-data" class="d-grid gap-3">
+            {% csrf_token %}
+            <div>
+              <label class="form-label fw-semibold" for="id_delivery_terms_file">Обновить файл с условиями заказа и доставки</label>
+              <input class="form-control" id="id_delivery_terms_file" type="file" name="delivery_terms_file" required>
+            </div>
+
+            <div class="price-file-card__current">
+              <span class="price-file-card__caption">Текущий файл</span>
+              {% if delivery_terms_file_name and delivery_terms_file_url %}
+                <strong>{{ delivery_terms_file_name }}</strong>
+                <a class="btn btn-sm btn-outline-dark text-black align-self-start" href="{{ delivery_terms_file_url }}" download>Скачать</a>
+              {% else %}
+                <span class="text-muted">Файл пока не загружен.</span>
+              {% endif %}
+            </div>
+
+            <button class="button default price-file-card__submit" type="submit">Обновить файл с условиями заказа и доставки</button>
+          </form>
+        </div>
+      </div>
+
       <div class="module" id="recent-actions-module">
         <h2>{% translate 'Recent actions' %}</h2>
         <h3>{% translate 'My actions' %}</h3>

@@ -2,6 +2,7 @@ __pycache__/
 *.py[cod]
 .env
 staticfiles/
+db.sqlite3
 
 media/products/
 media/price_uploads/

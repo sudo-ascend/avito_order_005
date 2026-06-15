@@ -820,10 +820,20 @@ input[type="file"] {
 
 .contact-actions {
   grid-column: 1 / -1;
+  display: grid;
+  gap: 14px;
+}
+
+.contact-actions__primary,
+.contact-actions__downloads {
   display: flex;
   flex-wrap: wrap;
   gap: 14px;
   align-items: stretch;
+}
+
+.contact-actions__downloads {
+  align-items: start;
 }
 
 .contacts .contact-actions .button {
@@ -844,6 +854,7 @@ input[type="file"] {
 }
 
 .contact-actions__price {
+  flex: 1 1 260px;
   font-weight: 800;
 }
 
@@ -1081,6 +1092,8 @@ input[type="file"] {
 
   .hero__buttons,
   .contact-actions,
+  .contact-actions__primary,
+  .contact-actions__downloads,
   .form-actions {
     display: grid;
   }

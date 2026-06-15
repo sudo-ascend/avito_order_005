@@ -38,10 +38,14 @@ def get_price_file_context():
         return {
             "price_file_name": "",
             "price_file_url": "",
+            "delivery_terms_file_name": "",
+            "delivery_terms_file_url": "",
         }
     return {
         "price_file_name": config.price_file_name,
         "price_file_url": config.price_file_url,
+        "delivery_terms_file_name": config.delivery_terms_file_name,
+        "delivery_terms_file_url": config.delivery_terms_file_url,
     }
 
 
@@ -67,6 +71,27 @@ def update_price_file_view(request):
     config.save(update_fields=("price_file", "price_file_original_name"))
 
     messages.success(request, f"Файл с ценами обновлен: {uploaded_file.name}")
+    return redirect("admin:index")
+
+
+
+def update_delivery_terms_file_view(request):
+    if request.method != "POST":
+        return redirect("admin:index")
+
+    uploaded_file = request.FILES.get("delivery_terms_file")
+    if uploaded_file is None:
+        messages.error(request, "Выберите файл с условиями заказа и доставки.")
+        return redirect("admin:index")
+
+    config = get_site_configuration()
+    if config.delivery_terms_file:
+        config.delivery_terms_file.delete(save=False)
+    config.delivery_terms_file.save(uploaded_file.name, uploaded_file, save=False)
+    config.delivery_terms_file_original_name = uploaded_file.name
+    config.save(update_fields=("delivery_terms_file", "delivery_terms_file_original_name"))
+
+    messages.success(request, f"Условия заказа и доставки обновлены: {uploaded_file.name}")
     return redirect("admin:index")
 
 
@@ -304,6 +329,11 @@ def custom_admin_urls():
             "price-file/update/",
             admin.site.admin_view(update_price_file_view),
             name="catalog_update_price_file",
+        ),
+        path(
+            "delivery-terms-file/update/",
+            admin.site.admin_view(update_delivery_terms_file_view),
+            name="catalog_update_delivery_terms_file",
         ),
         *_admin_site_get_urls(),
     ]

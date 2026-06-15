@@ -28,6 +28,11 @@ def upload_price_file(_instance, filename):
     return f"site/prices/price-list{suffix}"
 
 
+def upload_delivery_terms_file(_instance, filename):
+    suffix = Path(filename).suffix.lower() or ".pdf"
+    return f"site/delivery-terms/order-delivery-terms{suffix}"
+
+
 class SiteConfiguration(SingletonModel):
     brand_name = models.CharField("Название бренда", max_length=120, default="Aquaklon")
     brand_caption = models.CharField("Подпись бренда", max_length=160, default="меристемные растения")
@@ -148,6 +153,19 @@ class SiteConfiguration(SingletonModel):
         null=True,
     )
     price_file_original_name = models.CharField("Имя файла с ценами", max_length=255, blank=True, default="")
+    delivery_terms_file = models.FileField(
+        "Условия заказа и доставки",
+        upload_to=upload_delivery_terms_file,
+        storage=OverwriteStorage(),
+        blank=True,
+        null=True,
+    )
+    delivery_terms_file_original_name = models.CharField(
+        "Имя файла с условиями заказа и доставки",
+        max_length=255,
+        blank=True,
+        default="",
+    )
 
     footer_text = models.CharField("Текст в подвале", max_length=255, default="Москва · 8-926-601-92-74 · Aquaklon@yandex.ru")
 
@@ -188,6 +206,21 @@ class SiteConfiguration(SingletonModel):
             return self.price_file_original_name
         if self.price_file:
             return Path(self.price_file.name).name
+        return ""
+
+
+    @property
+    def delivery_terms_file_url(self):
+        if self.delivery_terms_file:
+            return self.delivery_terms_file.url
+        return ""
+
+    @property
+    def delivery_terms_file_name(self):
+        if self.delivery_terms_file_original_name:
+            return self.delivery_terms_file_original_name
+        if self.delivery_terms_file:
+            return Path(self.delivery_terms_file.name).name
         return ""
 
 

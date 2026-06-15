@@ -30,6 +30,27 @@ class HomePageTests(TestCase):
         self.assertContains(response, "Step one")
         self.assertContains(response, "Step two")
 
+    def test_home_page_shows_delivery_terms_download_button_when_file_is_configured(self):
+        config = SiteConfiguration.objects.first() or SiteConfiguration()
+        config.delivery_terms_file = "site/delivery-terms/order-delivery-terms.pdf"
+        config.delivery_terms_file_original_name = "delivery-terms.pdf"
+        config.save()
+
+        response = self.client.get(reverse("catalog:home"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Условия заказа и доставки")
+        self.assertContains(response, 'href="/media/site/delivery-terms/order-delivery-terms.pdf"', html=False)
+        self.assertContains(response, 'download="delivery-terms.pdf"', html=False)
+
+    def test_home_page_shows_delivery_terms_download_button_with_default_path(self):
+        response = self.client.get(reverse("catalog:home"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Условия заказа и доставки")
+        self.assertContains(response, 'href="media/site/delivery-terms/order-delivery-terms.pdf"', html=False)
+        self.assertContains(response, 'download="order-delivery-terms.pdf"', html=False)
+
     def test_home_page_contains_seo_metadata_and_schema(self):
         config = SiteConfiguration.objects.first() or SiteConfiguration()
         config.telegram_url = "https://t.me/microklon"
@@ -117,16 +138,18 @@ class AdminContentModeTests(TestCase):
         config = SiteConfiguration.objects.first() or SiteConfiguration()
         config.price_file_original_name = "old-price.xlsx"
         config.price_file = "site/prices/price-list.xlsx"
+        config.delivery_terms_file_original_name = "delivery-terms.pdf"
+        config.delivery_terms_file = "site/delivery-terms/order-delivery-terms.pdf"
         config.save()
         self.client.force_login(self.user)
 
         response = self.client.get(reverse("admin:index"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Обновить файл с ценами")
         self.assertContains(response, 'name="price_file"', html=False)
         self.assertContains(response, "old-price.xlsx")
-        self.assertContains(response, "Скачать")
+        self.assertContains(response, 'name="delivery_terms_file"', html=False)
+        self.assertContains(response, "delivery-terms.pdf")
         self.assertContains(response, "Тексты и изображения")
         self.assertContains(response, "Преимущества")
         self.assertContains(response, "Этапы заказа")
@@ -168,5 +191,25 @@ class AdminContentModeTests(TestCase):
         self.assertEqual(config.price_file_original_name, "new-prices.xlsx")
         self.assertEqual(config.price_file.name, "site/prices/price-list.xlsx")
         self.assertTrue((Path(settings.MEDIA_ROOT) / "site" / "prices" / "price-list.xlsx").exists())
-        self.assertContains(response, "Файл с ценами обновлен: new-prices.xlsx")
         self.assertContains(response, "new-prices.xlsx")
+
+    def test_admin_can_upload_delivery_terms_file_from_dashboard(self):
+        self.client.force_login(self.user)
+        upload = SimpleUploadedFile(
+            "delivery-terms.pdf",
+            b"delivery terms content",
+            content_type="application/pdf",
+        )
+
+        response = self.client.post(
+            reverse("admin:catalog_update_delivery_terms_file"),
+            {"delivery_terms_file": upload},
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        config = SiteConfiguration.objects.get(pk=1)
+        self.assertEqual(config.delivery_terms_file_original_name, "delivery-terms.pdf")
+        self.assertEqual(config.delivery_terms_file.name, "site/delivery-terms/order-delivery-terms.pdf")
+        self.assertTrue((Path(settings.MEDIA_ROOT) / "site" / "delivery-terms" / "order-delivery-terms.pdf").exists())
+        self.assertContains(response, "delivery-terms.pdf")

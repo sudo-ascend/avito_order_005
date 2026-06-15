@@ -196,14 +196,19 @@
           </div>
         </address>
         <div class="contact-actions">
-          <a class="button button--primary" href="tel:{{ config.contact_phone }}">{{ config.contacts_call_button_text }}</a>
-          <a class="button button--secondary" href="mailto:{{ config.contact_email }}">{{ config.contacts_email_button_text }}</a>
-          <a class="button button--whatsapp" href="{{ config.whatsapp_url }}" target="_blank" rel="noopener noreferrer">{{ config.contacts_whatsapp_button_text }}</a>
-          <a class="button button--max" href="{{ config.max_url }}" target="_blank" rel="noopener noreferrer">{{ config.contacts_max_button_text }}</a>
-          {% if config.telegram_url %}
-            <a class="button button--telegram" href="{{ config.telegram_url }}" target="_blank" rel="noopener noreferrer">{{ config.contacts_telegram_button_text }}</a>
-          {% endif %}
-          <a class="button button--primary contact-actions__price" href="{{ config.price_file_url|default:'media/site/prices/price-list.xlsx' }}" download="{{ config.price_file_name|default:'price-list.xlsx' }}">Узнать цены</a>
+          <div class="contact-actions__primary">
+            <a class="button button--primary" href="tel:{{ config.contact_phone }}">{{ config.contacts_call_button_text }}</a>
+            <a class="button button--secondary" href="mailto:{{ config.contact_email }}">{{ config.contacts_email_button_text }}</a>
+            <a class="button button--whatsapp" href="{{ config.whatsapp_url }}" target="_blank" rel="noopener noreferrer">{{ config.contacts_whatsapp_button_text }}</a>
+            <a class="button button--max" href="{{ config.max_url }}" target="_blank" rel="noopener noreferrer">{{ config.contacts_max_button_text }}</a>
+            {% if config.telegram_url %}
+              <a class="button button--telegram" href="{{ config.telegram_url }}" target="_blank" rel="noopener noreferrer">{{ config.contacts_telegram_button_text }}</a>
+            {% endif %}
+          </div>
+          <div class="contact-actions__downloads">
+            <a class="button button--primary contact-actions__price" href="{{ config.price_file_url|default:'media/site/prices/price-list.xlsx' }}" download="{{ config.price_file_name|default:'price-list.xlsx' }}">Узнать цены</a>
+            <a class="button button--secondary contact-actions__price" href="{{ config.delivery_terms_file_url|default:'media/site/delivery-terms/order-delivery-terms.pdf' }}" download="{{ config.delivery_terms_file_name|default:'order-delivery-terms.pdf' }}">Условия заказа и доставки</a>
+          </div>
         </div>
       </div>
     </section>
