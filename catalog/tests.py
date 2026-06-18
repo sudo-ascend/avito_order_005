@@ -94,6 +94,12 @@ class HomePageTests(TestCase):
         self.assertContains(sitemap_response, "<loc>http://testserver/</loc>", html=False)
         self.assertContains(sitemap_response, "<image:loc>http://testserver/static/gallery_1.webp</image:loc>", html=False)
 
+    def test_yandex_verification_file_is_available(self):
+        response = self.client.get(reverse("catalog:yandex_verification"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Verification: 4d153c26552f0309")
+
 
 @override_settings()
 class AdminContentModeTests(TestCase):

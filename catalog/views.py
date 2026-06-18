@@ -444,3 +444,11 @@ def sitemap_xml(request):
     )
     response["X-Robots-Tag"] = TECHNICAL_NOINDEX_DIRECTIVES
     return response
+
+
+def yandex_verification(request):
+    return render(
+        request,
+        "catalog/yandex_4d153c26552f0309.html",
+        content_type="text/html; charset=utf-8",
+    )
