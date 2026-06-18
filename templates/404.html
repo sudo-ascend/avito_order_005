@@ -1,0 +1,33 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>404 - Страница не найдена | AquaKlon</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="{% static 'favicon.ico' %}">
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+</head>
+<body class="error-page">
+  <main class="error-shell">
+    <span class="error-kicker">Страница не найдена</span>
+    <div class="error-grid">
+      <section>
+        <h1 class="error-title">Похоже, адрес изменился</h1>
+        <p class="error-text">
+          Такой страницы сейчас нет. Возможно, ссылка устарела или адрес был введен с опечаткой. Основные разделы сайта доступны с главной страницы.
+        </p>
+        <div class="error-actions">
+          <a class="button button--primary" href="/">Открыть главную</a>
+          <a class="button button--ghost" href="/#plants">Смотреть каталог</a>
+        </div>
+      </section>
+      <aside class="error-card">
+        <h2 class="error-code">404</h2>
+        <p>Если вы искали конкретное растение, его можно быстро найти через каталог или написать нам в контакты.</p>
+      </aside>
+    </div>
+  </main>
+</body>
+</html>
