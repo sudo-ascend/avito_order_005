@@ -1,6 +1,14 @@
 User-agent: *
+{% if allow_indexing %}
 Allow: /
 Disallow: /admin/
+Disallow: /accounts/
+Disallow: /*?next=
+Disallow: /*?page=
+Clean-param: {{ clean_params }} /
+{% else %}
+Disallow: /
+{% endif %}
 
 Sitemap: {{ sitemap_url }}
 Host: {{ host }}

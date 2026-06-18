@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block content %}
-  <main id="top">
+  <main id="top" tabindex="-1">
     <section class="hero section-observe" aria-labelledby="hero-title">
       <picture class="hero__media">
         <img
@@ -90,14 +90,35 @@
           <div>
             <p class="eyebrow">{{ config.plants_eyebrow }}</p>
             <h2 id="plants-title">{{ config.plants_title }}</h2>
+            <p>{{ config.plants_text }}</p>
           </div>
         </div>
-        <div
-          class="product-grid"
-          data-products
-          data-price-file-url="{{ config.price_file_url|default:'media/site/prices/price-list.xlsx' }}"
-          data-price-file-name="{{ config.price_file_name|default:'price-list.xlsx' }}"
-        ></div>
+        <div class="product-grid">
+          {% for product in plant_products %}
+            <article class="product-card">
+              <picture>
+                <img
+                  src="{% static product.image_path %}"
+                  alt="{{ product.image_alt }}"
+                  loading="lazy"
+                  width="{{ product.image_width }}"
+                  height="{{ product.image_height }}"
+                  {% if product.image_position %}style="object-position: {{ product.image_position }};"{% endif %}
+                />
+              </picture>
+              <div class="product-card__body">
+                <div>
+                  <h3>{{ product.title }}</h3>
+                  <em>{{ product.latin_name }}</em>
+                </div>
+                <p>{{ product.description }}</p>
+                <a class="button button--primary product-card__action" href="{{ config.price_file_url|default:'media/site/prices/price-list.xlsx' }}" download="{{ config.price_file_name|default:'price-list.xlsx' }}">Узнать цены</a>
+              </div>
+            </article>
+          {% empty %}
+            <div class="empty-state">Каталог растений сейчас обновляется. Свяжитесь с нами, и мы подскажем наличие.</div>
+          {% endfor %}
+        </div>
       </div>
     </section>
 
@@ -141,6 +162,37 @@
             <div class="empty-state">Этапы заказа пока не добавлены в админке.</div>
           {% endfor %}
         </div>
+      </div>
+    </section>
+
+
+    {% if faq_items %}
+    <section class="section section--cream faq section-observe" id="faq" aria-labelledby="faq-title">
+      <div class="container">
+        <div class="section-head section-head--wide">
+          <div>
+            <p class="eyebrow">{{ config.faq_eyebrow }}</p>
+            <h2 id="faq-title">{{ config.faq_title }}</h2>
+          </div>
+          <p>{{ config.faq_text }}</p>
+        </div>
+        <div class="faq-list">
+          {% for item in faq_items %}
+          <details class="faq-item"{% if forloop.first %} open{% endif %}>
+            <summary>{{ item.question }}</summary>
+            <p>{{ item.answer }}</p>
+          </details>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <section class="section seo-copy section-observe" aria-labelledby="seo-copy-title">
+      <div class="container seo-copy__inner">
+        <p class="eyebrow">Полезно для выбора</p>
+        <h2 id="seo-copy-title">{{ config.seo_text_title }}</h2>
+        <p>{{ config.seo_text }}</p>
       </div>
     </section>
 

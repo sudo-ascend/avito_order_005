@@ -14,6 +14,7 @@ from django.urls import reverse
 from .models import Benefit, GalleryItem, OrderStep, Review, SiteConfiguration
 
 
+@override_settings(SITE_URL="http://testserver")
 class HomePageTests(TestCase):
     def test_home_page_renders_dynamic_content(self):
         Benefit.objects.create(icon="shield", title="Clean start", text="Sterile culture", sort_order=1)

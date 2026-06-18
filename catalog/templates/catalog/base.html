@@ -6,17 +6,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}{{ config.site_title }}{% endblock %}</title>
     <meta name="description" content="{% block meta_description %}{{ config.meta_description }}{% endblock %}" />
+{% if seo.meta_keywords %}<meta name="keywords" content="{{ seo.meta_keywords }}" />{% endif %}
     <meta name="robots" content="{{ seo.meta_robots }}" />
     <meta name="googlebot" content="{{ seo.meta_robots }}" />
     <meta name="author" content="{{ config.brand_name }}" />
     <meta name="publisher" content="{{ config.brand_name }}" />
+    <meta name="application-name" content="{{ config.brand_name }}" />
+    <meta name="apple-mobile-web-app-title" content="{{ config.brand_name }}" />
     <meta http-equiv="content-language" content="ru-RU" />
     <meta name="format-detection" content="telephone=yes" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta name="theme-color" content="#073f35" />
+{% if seo.google_site_verification %}<meta name="google-site-verification" content="{{ seo.google_site_verification }}" />{% endif %}
+{% if seo.yandex_site_verification %}<meta name="yandex-verification" content="{{ seo.yandex_site_verification }}" />{% endif %}
+<meta name="geo.region" content="RU-MOW" />
+<meta name="geo.placename" content="{{ config.contact_city }}" />
     <link rel="canonical" href="{{ seo.canonical_url }}" />
     <link rel="alternate" hreflang="ru-RU" href="{{ seo.canonical_url }}" />
     <link rel="alternate" hreflang="x-default" href="{{ seo.canonical_url }}" />
     <link rel="sitemap" type="application/xml" title="Sitemap" href="{{ seo.sitemap_url }}" />
+<link rel="manifest" href="{% static 'site.webmanifest' %}" />
     <link rel="preload" as="image" href="{{ seo.hero_image_url }}" />
     <link rel="icon" href="{{ config.logo_url }}" />
     <link rel="apple-touch-icon" href="{{ config.logo_url }}" />
@@ -27,21 +36,31 @@
     <meta property="og:description" content="{{ config.meta_description }}" />
     <meta property="og:url" content="{{ seo.canonical_url }}" />
     <meta property="og:image" content="{{ seo.og_image_url }}" />
+
+    <meta property="og:image:secure_url" content="{{ seo.og_image_url }}" />
+
     <meta property="og:image:alt" content="{{ seo.og_image_alt }}" />
+
+    <meta property="og:image:width" content="1200" />
+
+    <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="{{ config.site_title }}" />
     <meta name="twitter:description" content="{{ config.meta_description }}" />
+    <meta name="twitter:url" content="{{ seo.canonical_url }}" />
     <meta name="twitter:image" content="{{ seo.og_image_url }}" />
     <meta name="twitter:image:alt" content="{{ seo.og_image_alt }}" />
     {% if seo.page_last_modified %}
       <meta property="article:modified_time" content="{{ seo.page_last_modified|date:'c' }}" />
     {% endif %}
     <link rel="stylesheet" href="{% static 'css/site.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/seo.css' %}" />
     {% for schema in seo.structured_data %}
       <script type="application/ld+json">{{ schema|safe }}</script>
     {% endfor %}
   </head>
   <body>
+  <a class="skip-link" href="#top">Перейти к содержимому</a>
     <header class="site-header" data-header>
       <a class="brand" href="{% url 'catalog:home' %}#top" aria-label="{{ config.brand_name }}">
         <span class="brand__mark"><img src="{{ config.logo_url }}" alt="" width="42" height="42" /></span>
@@ -56,6 +75,7 @@
         <a href="{% url 'catalog:home' %}#plants">{{ config.nav_plants_label }}</a>
         <a href="{% url 'catalog:home' %}#aquariums">{{ config.nav_aquariums_label }}</a>
         <a href="{% url 'catalog:home' %}#reviews">{{ config.nav_reviews_label }}</a>
+        {% if faq_items %}<a href="{% url 'catalog:home' %}#faq">{{ config.nav_faq_label }}</a>{% endif %}
         <a href="{% url 'catalog:home' %}#contacts">{{ config.nav_contacts_label }}</a>
       </nav>
       <div class="header-actions">
@@ -100,6 +120,7 @@
           <a href="{% url 'catalog:home' %}#advantages">{{ config.nav_advantages_label }}</a>
           <a href="{% url 'catalog:home' %}#aquariums">{{ config.nav_aquariums_label }}</a>
           <a href="{% url 'catalog:home' %}#reviews">{{ config.nav_reviews_label }}</a>
+          {% if faq_items %}<a href="{% url 'catalog:home' %}#faq">{{ config.nav_faq_label }}</a>{% endif %}
           <a href="{% url 'catalog:home' %}#contacts">{{ config.nav_contacts_label }}</a>
         </nav>
       </div>

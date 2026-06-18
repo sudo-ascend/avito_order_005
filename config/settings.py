@@ -2,13 +2,35 @@
 Django settings for config project.
 """
 
+import ast
 import os
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from dotenv import load_dotenv
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+def env_bool(name, default=False):
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def env_list(name, default):
+    value = os.environ.get(name)
+    if not value:
+        return default
+    try:
+        parsed = ast.literal_eval(value)
+    except (SyntaxError, ValueError):
+        parsed = None
+    if isinstance(parsed, (list, tuple, set)):
+        return [str(item).strip() for item in parsed if str(item).strip()]
+    return [item.strip() for item in value.split(",") if item.strip()]
 
 
 # Загружаем .env файл
@@ -17,16 +39,28 @@ if env_path.exists():
     load_dotenv(env_path, override=True)
 
 
-DEBUG = eval(os.environ.get("DEBUG"))
+DEBUG = env_bool("DEBUG", False)
 
 
 # ====== БЕЗОПАСНОСТЬ ======
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-secret-key-12345")
+SITE_URL = os.environ.get("SITE_URL", "https://aquaklon.ru").rstrip("/")
+if not SITE_URL.startswith(("http://", "https://")):
+    SITE_URL = f"https://{SITE_URL}"
+SITE_HOST = urlsplit(SITE_URL).netloc
+SEO_NOINDEX = env_bool("SEO_NOINDEX", False)
 
 # =========================
 
 
-ALLOWED_HOSTS = ['aquaklon.ru', 'www.aquaklon.ru', '127.0.0.1', 'localhost']
+default_allowed_hosts = [SITE_HOST]
+if SITE_HOST.startswith("www."):
+    default_allowed_hosts.append(SITE_HOST.removeprefix("www."))
+else:
+    default_allowed_hosts.append(f"www.{SITE_HOST}")
+default_allowed_hosts.extend(["127.0.0.1", "localhost"])
+
+ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", default_allowed_hosts)
 
 
 INSTALLED_APPS = [
@@ -41,6 +75,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -123,14 +158,21 @@ USE_TZ = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGIN_URL = "/admin/login/"
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 
 # Хранилище для статики
+staticfiles_backend = "django.contrib.staticfiles.storage.StaticFilesStorage"
+if not DEBUG:
+    staticfiles_backend = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        "BACKEND": staticfiles_backend,
     },
 }
+
+WHITENOISE_MAX_AGE = 0 if DEBUG else 31536000

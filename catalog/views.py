@@ -1,14 +1,19 @@
 import json
-from datetime import datetime
-from urllib.parse import urlsplit
+from urllib.parse import urljoin, urlsplit
 
 from django.conf import settings
 from django.shortcuts import render
+from django.templatetags.static import static
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.http import http_date
 
-from .models import Benefit, GalleryItem, OrderStep, Review, SiteConfiguration
+from .content import PLANT_PRODUCTS
+from .models import Benefit, FAQItem, GalleryItem, OrderStep, Review, SiteConfiguration
+
+
+PAGE_NOINDEX_DIRECTIVES = "noindex, nofollow, noarchive"
+TECHNICAL_NOINDEX_DIRECTIVES = "noindex, follow"
+TRACKING_CLEAN_PARAMS = "utm_source&utm_medium&utm_campaign&utm_term&utm_content&utm_id&gclid&yclid&ysclid&fbclid"
 
 
 def get_site_configuration():
@@ -18,57 +23,77 @@ def get_site_configuration():
     return config
 
 
-def get_absolute_url(request, path_or_url):
+def normalize_host(host):
+    return host.split(":", 1)[0].strip().lower()
+
+
+def get_site_host():
+    return normalize_host(urlsplit(settings.SITE_URL).netloc)
+
+
+def build_public_url(path_or_url):
     if not path_or_url:
         return ""
-    absolute_url = request.build_absolute_uri(path_or_url)
-    if settings.DEBUG:
-        return absolute_url.replace("https://", "http://", 1)
-    return absolute_url
+    if path_or_url.startswith(("http://", "https://")):
+        return path_or_url
+    return urljoin(f"{settings.SITE_URL}/", path_or_url.lstrip("/"))
 
 
-def get_canonical_url(request, config):
-    canonical_url = request.build_absolute_uri(reverse("catalog:home"))
-    if settings.DEBUG:
-        return canonical_url.replace("https://", "http://", 1)
-    return canonical_url
+def is_primary_host_request(request):
+    return normalize_host(request.get_host()) == get_site_host()
+
+
+def get_canonical_url():
+    return build_public_url(reverse("catalog:home"))
+
+
+def get_page_robots(request, config):
+    if settings.SEO_NOINDEX or not is_primary_host_request(request):
+        return PAGE_NOINDEX_DIRECTIVES
+    return config.meta_robots
 
 
 def get_site_last_modified():
-    file_candidates = (
-        settings.BASE_DIR / "db.sqlite3",
-        settings.BASE_DIR / "catalog" / "views.py",
-        settings.BASE_DIR / "catalog" / "models.py",
-        settings.BASE_DIR / "catalog" / "templates" / "catalog" / "base.html",
-        settings.BASE_DIR / "catalog" / "templates" / "catalog" / "home.html",
-    )
-    mtimes = [path.stat().st_mtime for path in file_candidates if path.exists()]
-    if not mtimes:
-        return None
-    return datetime.fromtimestamp(max(mtimes), tz=timezone.get_current_timezone())
+    last_modified_values = [
+        SiteConfiguration.objects.order_by("-updated_at").values_list("updated_at", flat=True).first(),
+        Benefit.objects.filter(is_published=True).order_by("-updated_at").values_list("updated_at", flat=True).first(),
+        GalleryItem.objects.filter(is_published=True).order_by("-updated_at").values_list("updated_at", flat=True).first(),
+        OrderStep.objects.filter(is_published=True).order_by("-updated_at").values_list("updated_at", flat=True).first(),
+        Review.objects.filter(is_published=True).order_by("-updated_at").values_list("updated_at", flat=True).first(),
+        FAQItem.objects.filter(is_published=True).order_by("-updated_at").values_list("updated_at", flat=True).first(),
+    ]
+    return max((value for value in last_modified_values if value is not None), default=None)
 
 
-def build_image_entries(request, config, gallery_items):
+def build_image_entries(config, gallery_items, plant_products):
     raw_images = [
         {
-            "loc": get_absolute_url(request, config.social_image_url),
+            "loc": build_public_url(config.social_image_url),
             "caption": config.social_image_alt or config.site_title,
             "title": config.brand_name,
         },
         {
-            "loc": get_absolute_url(request, config.hero_image_url),
+            "loc": build_public_url(config.hero_image_url),
             "caption": config.hero_title,
             "title": config.brand_name,
         },
     ]
     raw_images.extend(
         {
-            "loc": get_absolute_url(request, item.display_image_url),
+            "loc": build_public_url(item.display_image_url),
             "caption": item.image_alt or item.text,
             "title": item.title,
         }
         for item in gallery_items
         if item.display_image_url
+    )
+    raw_images.extend(
+        {
+            "loc": build_public_url(static(product.image_path)),
+            "caption": product.image_alt,
+            "title": product.title,
+        }
+        for product in plant_products
     )
 
     deduped = []
@@ -82,12 +107,23 @@ def build_image_entries(request, config, gallery_items):
     return deduped
 
 
-def build_structured_data(request, config, canonical_url, page_last_modified, reviews):
+def build_structured_data(
+    config,
+    canonical_url,
+    page_last_modified,
+    reviews,
+    benefits,
+    gallery_items,
+    order_steps,
+    faq_items,
+    plant_products,
+):
     organization_id = f"{canonical_url}#organization"
     website_id = f"{canonical_url}#website"
     webpage_id = f"{canonical_url}#webpage"
-    logo_url = get_absolute_url(request, config.logo_url)
-    social_image_url = get_absolute_url(request, config.social_image_url)
+    breadcrumb_id = f"{canonical_url}#breadcrumbs"
+    logo_url = build_public_url(config.logo_url)
+    social_image_url = build_public_url(config.social_image_url)
     review_items = list(reviews[:3])
     same_as = [url for url in (config.whatsapp_url, config.max_url, config.telegram_url) if url]
 
@@ -102,12 +138,21 @@ def build_structured_data(request, config, canonical_url, page_last_modified, re
         "logo": logo_url,
         "telephone": config.contact_phone,
         "email": config.contact_email,
+        "priceRange": getattr(config, "business_price_range", "$$"),
         "address": {
             "@type": "PostalAddress",
+            "streetAddress": getattr(config, "address_street", ""),
             "addressLocality": config.contact_city,
+            "addressRegion": getattr(config, "contact_region", ""),
             "addressCountry": "RU",
         },
-        "areaServed": config.contact_city,
+        "areaServed": getattr(config, "contact_region", config.contact_city),
+        "openingHoursSpecification": [
+            {
+                "@type": "OpeningHoursSpecification",
+                "description": getattr(config, "opening_hours", ""),
+            }
+        ],
         "contactPoint": [
             {
                 "@type": "ContactPoint",
@@ -165,15 +210,142 @@ def build_structured_data(request, config, canonical_url, page_last_modified, re
         "inLanguage": "ru-RU",
         "isPartOf": {"@id": website_id},
         "about": {"@id": organization_id},
+        "breadcrumb": {"@id": breadcrumb_id},
         "primaryImageOfPage": social_image_url,
+        "mainEntity": {"@id": organization_id},
     }
     if page_last_modified:
         webpage_schema["dateModified"] = page_last_modified.isoformat()
 
-    return [
-        json.dumps(schema, ensure_ascii=False, separators=(",", ":"))
-        for schema in (organization_schema, website_schema, webpage_schema)
-    ]
+    breadcrumb_schema = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "@id": breadcrumb_id,
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": config.brand_name,
+                "item": canonical_url,
+            }
+        ],
+    }
+
+    schemas = [organization_schema, website_schema, webpage_schema, breadcrumb_schema]
+
+    if benefits:
+        schemas.append(
+            {
+                "@context": "https://schema.org",
+                "@type": "ItemList",
+                "@id": f"{canonical_url}#benefits",
+                "name": config.advantages_title,
+                "itemListElement": [
+                    {
+                        "@type": "ListItem",
+                        "position": index,
+                        "name": benefit.title,
+                        "description": benefit.text,
+                    }
+                    for index, benefit in enumerate(benefits, start=1)
+                ],
+            }
+        )
+
+    if plant_products:
+        schemas.append(
+            {
+                "@context": "https://schema.org",
+                "@type": "ItemList",
+                "@id": f"{canonical_url}#plants",
+                "name": config.plants_title,
+                "description": config.plants_text,
+                "numberOfItems": len(plant_products),
+                "itemListElement": [
+                    {
+                        "@type": "ListItem",
+                        "position": index,
+                        "url": f"{canonical_url}#plants",
+                        "item": {
+                            "@type": "Product",
+                            "@id": f"{canonical_url}#plant-{product.slug}",
+                            "name": product.title,
+                            "alternateName": product.latin_name,
+                            "description": product.description,
+                            "image": build_public_url(static(product.image_path)),
+                            "category": "Аквариумные растения in vitro",
+                            "brand": {
+                                "@type": "Brand",
+                                "name": config.brand_name,
+                            },
+                        },
+                    }
+                    for index, product in enumerate(plant_products, start=1)
+                ],
+            }
+        )
+
+    if gallery_items:
+        schemas.append(
+            {
+                "@context": "https://schema.org",
+                "@type": "ImageGallery",
+                "@id": f"{canonical_url}#gallery",
+                "name": config.aquariums_title,
+                "description": config.aquariums_text,
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "contentUrl": build_public_url(item.display_image_url),
+                        "name": item.title,
+                        "description": item.image_alt or item.text,
+                    }
+                    for item in gallery_items
+                    if item.display_image_url
+                ],
+            }
+        )
+
+    if order_steps:
+        schemas.append(
+            {
+                "@context": "https://schema.org",
+                "@type": "HowTo",
+                "@id": f"{canonical_url}#how-to-order",
+                "name": config.order_title,
+                "step": [
+                    {
+                        "@type": "HowToStep",
+                        "position": index,
+                        "name": step.title,
+                        "text": step.text,
+                    }
+                    for index, step in enumerate(order_steps, start=1)
+                ],
+            }
+        )
+
+    if faq_items:
+        schemas.append(
+            {
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "@id": f"{canonical_url}#faq",
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": item.question,
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": item.answer,
+                        },
+                    }
+                    for item in faq_items
+                ],
+            }
+        )
+
+    return [json.dumps(schema, ensure_ascii=False, separators=(",", ":")) for schema in schemas]
 
 
 def build_home_context(request):
@@ -182,33 +354,43 @@ def build_home_context(request):
     gallery_items = list(GalleryItem.objects.filter(is_published=True))
     order_steps = list(OrderStep.objects.filter(is_published=True))
     reviews = list(Review.objects.filter(is_published=True))
-    canonical_url = get_canonical_url(request, config)
+    faq_items = list(FAQItem.objects.filter(is_published=True))
+    plant_products = PLANT_PRODUCTS
+    canonical_url = get_canonical_url()
     page_last_modified = get_site_last_modified()
-
     seo_context = {
         "canonical_url": canonical_url,
-        "meta_robots": config.meta_robots,
-        "og_image_url": get_absolute_url(request, config.social_image_url),
+        "meta_robots": get_page_robots(request, config),
+        "meta_keywords": getattr(config, "seo_keywords", ""),
+        "google_site_verification": getattr(config, "google_site_verification", ""),
+        "yandex_site_verification": getattr(config, "yandex_site_verification", ""),
+        "og_image_url": build_public_url(config.social_image_url),
         "og_image_alt": config.social_image_alt or config.site_title,
-        "hero_image_url": get_absolute_url(request, config.hero_image_url),
-        "logo_url": get_absolute_url(request, config.logo_url),
+        "hero_image_url": build_public_url(config.hero_image_url),
+        "logo_url": build_public_url(config.logo_url),
         "page_last_modified": page_last_modified,
-        "sitemap_url": get_absolute_url(request, reverse("catalog:sitemap")),
+        "sitemap_url": build_public_url(reverse("catalog:sitemap")),
+        "is_indexable": is_primary_host_request(request) and not settings.SEO_NOINDEX,
         "structured_data": build_structured_data(
-            request=request,
             config=config,
             canonical_url=canonical_url,
             page_last_modified=page_last_modified,
             reviews=reviews,
+            benefits=benefits,
+            gallery_items=gallery_items,
+            order_steps=order_steps,
+            faq_items=faq_items,
+            plant_products=plant_products,
         ),
     }
-
     return {
         "config": config,
         "benefits": benefits,
         "gallery_items": gallery_items,
         "order_steps": order_steps,
         "reviews": reviews,
+        "faq_items": faq_items,
+        "plant_products": plant_products,
         "seo": seo_context,
     }
 
@@ -223,18 +405,18 @@ def home(request):
 
 
 def robots_txt(request):
-    config = get_site_configuration()
-    canonical_url = get_canonical_url(request, config)
     response = render(
         request,
         "catalog/robots.txt",
         {
-            "sitemap_url": get_absolute_url(request, reverse("catalog:sitemap")),
-            "host": urlsplit(canonical_url).netloc or request.get_host(),
+            "allow_indexing": is_primary_host_request(request) and not settings.SEO_NOINDEX,
+            "clean_params": TRACKING_CLEAN_PARAMS,
+            "sitemap_url": build_public_url(reverse("catalog:sitemap")),
+            "host": get_site_host(),
         },
         content_type="text/plain; charset=utf-8",
     )
-    response["X-Robots-Tag"] = "noindex, follow"
+    response["X-Robots-Tag"] = TECHNICAL_NOINDEX_DIRECTIVES
     return response
 
 
@@ -247,12 +429,18 @@ def sitemap_xml(request):
             "lastmod": page_last_modified.date().isoformat() if page_last_modified else "",
             "changefreq": "weekly",
             "priority": "1.0",
-            "images": build_image_entries(request, context["config"], context["gallery_items"]),
+            "alternates": [
+                {"hreflang": "ru-RU", "href": context["seo"]["canonical_url"]},
+                {"hreflang": "x-default", "href": context["seo"]["canonical_url"]},
+            ],
+            "images": build_image_entries(context["config"], context["gallery_items"], context["plant_products"]),
         }
     ]
-    return render(
+    response = render(
         request,
         "catalog/sitemap.xml",
         {"pages": pages},
         content_type="application/xml; charset=utf-8",
     )
+    response["X-Robots-Tag"] = TECHNICAL_NOINDEX_DIRECTIVES
+    return response

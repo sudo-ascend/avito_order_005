@@ -7,7 +7,14 @@ from django.db import models
 from django.templatetags.static import static
 
 
-class SingletonModel(models.Model):
+class TimestampedModel(models.Model):
+    updated_at = models.DateTimeField("Обновлено", auto_now=True)
+
+    class Meta:
+        abstract = True
+
+
+class SingletonModel(TimestampedModel):
     class Meta:
         abstract = True
 
@@ -46,6 +53,35 @@ class SiteConfiguration(SingletonModel):
         max_length=160,
         default="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
     )
+    seo_keywords = models.CharField(
+        "SEO-ключевые фразы",
+        max_length=500,
+        blank=True,
+        default="меристемные аквариумные растения, аквариумные растения in vitro, растения для акваскейпа, купить аквариумные растения, Aquaklon",
+    )
+    google_site_verification = models.CharField(
+        "Google Search Console verification",
+        max_length=255,
+        blank=True,
+        default="",
+        help_text="Только значение content из meta-тега google-site-verification.",
+    )
+    yandex_site_verification = models.CharField(
+        "Яндекс.Вебмастер verification",
+        max_length=255,
+        blank=True,
+        default="",
+        help_text="Только значение content из meta-тега yandex-verification.",
+    )
+    contact_region = models.CharField("Регион обслуживания", max_length=160, default="Москва и Московская область")
+    address_street = models.CharField("Адрес / ориентир", max_length=255, blank=True, default="")
+    opening_hours = models.CharField(
+        "Режим работы",
+        max_length=255,
+        default="Ежедневно, по предварительной договоренности",
+    )
+    business_price_range = models.CharField("Ценовой диапазон для schema.org", max_length=32, default="$$")
+
     social_image = models.ImageField("Изображение для соцсетей", upload_to="site/seo", blank=True, null=True)
     social_image_alt = models.CharField("Описание изображения для соцсетей", max_length=255, blank=True, default="")
     contact_phone = models.CharField("Телефон для ссылок", max_length=32, default="+79266019274")
@@ -62,6 +98,7 @@ class SiteConfiguration(SingletonModel):
     nav_aquariums_label = models.CharField("Пункт меню Аквариумы", max_length=80, default="Аквариумы")
     nav_reviews_label = models.CharField("Пункт меню Отзывы", max_length=80, default="Отзывы")
     nav_contacts_label = models.CharField("Пункт меню Контакты", max_length=80, default="Контакты")
+    nav_faq_label = models.CharField("Пункт меню FAQ", max_length=80, default="FAQ")
 
     header_contact_button_text = models.CharField("Текст кнопки в шапке", max_length=80, default="Связаться")
     hero_eyebrow = models.CharField(
@@ -112,6 +149,10 @@ class SiteConfiguration(SingletonModel):
     )
     plants_eyebrow = models.CharField("Растения надзаголовок", max_length=120, default="Каталог растений")
     plants_title = models.TextField("Растения заголовок", default="Популярные виды для аквариума и акваскейпа")
+    plants_text = models.TextField(
+        "Растения SEO-описание",
+        default="В каталоге Aquaklon собраны меристемные аквариумные растения для переднего, среднего и заднего плана, запуска травника и оформления акваскейпа.",
+    )
     aquariums_eyebrow = models.CharField("Галерея надзаголовок", max_length=120, default="Живые композиции")
     aquariums_title = models.TextField("Галерея заголовок", default="Аквариумы, созданные из наших растений")
     aquariums_text = models.TextField(
@@ -121,6 +162,22 @@ class SiteConfiguration(SingletonModel):
 
     order_eyebrow = models.CharField("Заказ надзаголовок", max_length=120, default="Как заказать")
     order_title = models.TextField("Заказ заголовок", default="Простой путь от выбора до посадки")
+    faq_eyebrow = models.CharField("FAQ надзаголовок", max_length=120, default="Вопросы и ответы")
+    faq_title = models.TextField("FAQ заголовок", default="Что важно знать перед заказом меристемных растений")
+    faq_text = models.TextField(
+        "FAQ описание",
+        default="Собрали ответы на частые вопросы о формате in vitro, посадке, доставке и выборе растений для аквариума.",
+    )
+    seo_text_title = models.CharField(
+        "SEO-текст заголовок",
+        max_length=255,
+        default="Меристемные аквариумные растения Aquaklon",
+    )
+    seo_text = models.TextField(
+        "SEO-текст на странице",
+        default="Aquaklon выращивает и поставляет меристемные аквариумные растения для акваскейпа, домашних травников и профессиональных запусков. Формат in vitro помогает получить чистый посадочный материал без водорослей, улиток и случайных примесей, а компактная упаковка удобна для транспортировки и аккуратной посадки.",
+    )
+
     reviews_eyebrow = models.CharField("Отзывы надзаголовок", max_length=120, default="Отзывы клиентов")
     reviews_title = models.TextField(
         "Отзывы заголовок",
@@ -224,7 +281,7 @@ class SiteConfiguration(SingletonModel):
         return ""
 
 
-class OrderedModel(models.Model):
+class OrderedModel(TimestampedModel):
     sort_order = models.PositiveIntegerField("Порядок", default=0)
     is_published = models.BooleanField("Показывать на сайте", default=True)
 
@@ -297,6 +354,18 @@ class OrderStep(OrderedModel):
     def __str__(self):
         return self.title
 
+
+
+class FAQItem(OrderedModel):
+    question = models.CharField("Вопрос", max_length=255)
+    answer = models.TextField("Ответ")
+
+    class Meta(OrderedModel.Meta):
+        verbose_name = "Вопрос и ответ"
+        verbose_name_plural = "FAQ: вопросы и ответы"
+
+    def __str__(self):
+        return self.question
 
 class Review(OrderedModel):
     name = models.CharField("Имя", max_length=120)

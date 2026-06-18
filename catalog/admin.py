@@ -9,7 +9,7 @@ from django.shortcuts import redirect
 from django.urls import path, reverse
 from django.utils.html import format_html
 
-from .models import Benefit, GalleryItem, OrderStep, Review, SiteConfiguration
+from .models import Benefit, FAQItem, GalleryItem, OrderStep, Review, SiteConfiguration
 
 
 def render_preview(image_url: str, alt: str, *, size: int = 72):
@@ -112,6 +112,13 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
                     "site_title",
                     "meta_description",
                     "meta_robots",
+                    "seo_keywords",
+                    "google_site_verification",
+                    "yandex_site_verification",
+                    "contact_region",
+                    "address_street",
+                    "opening_hours",
+                    "business_price_range",
                     "logo",
                     "logo_preview",
                     "social_image",
@@ -131,6 +138,7 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
                     "nav_aquariums_label",
                     "nav_reviews_label",
                     "nav_contacts_label",
+                    "nav_faq_label",
                     "header_contact_button_text",
                 )
             },
@@ -183,9 +191,22 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
                 "fields": (
                     "plants_eyebrow",
                     "plants_title",
+                    "plants_text",
                 )
             },
         ),
+            (
+                "FAQ и SEO-текст",
+                {
+                    "fields": (
+                        "faq_eyebrow",
+                        "faq_title",
+                        "faq_text",
+                        "seo_text_title",
+                        "seo_text",
+                    )
+                },
+            ),
         (
             "Галерея, отзывы и контакты",
             {
@@ -299,6 +320,14 @@ class OrderStepAdmin(admin.ModelAdmin):
     ordering = ("sort_order", "id")
     fields = ("title", "text", "sort_order", "is_published")
 
+
+
+@admin.register(FAQItem)
+class FAQItemAdmin(admin.ModelAdmin):
+    list_display = ("question", "sort_order", "is_published")
+    list_editable = ("sort_order", "is_published")
+    ordering = ("sort_order", "id")
+    fields = ("question", "answer", "sort_order", "is_published")
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):

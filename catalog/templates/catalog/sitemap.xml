@@ -2,6 +2,7 @@
 <urlset
   xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml"
 >
   {% for page in pages %}
     <url>
@@ -11,6 +12,9 @@
       {% endif %}
       <changefreq>{{ page.changefreq }}</changefreq>
       <priority>{{ page.priority }}</priority>
+      {% for alternate in page.alternates %}
+        <xhtml:link rel="alternate" hreflang="{{ alternate.hreflang }}" href="{{ alternate.href }}" />
+      {% endfor %}
       {% for image in page.images %}
         <image:image>
           <image:loc>{{ image.loc }}</image:loc>
