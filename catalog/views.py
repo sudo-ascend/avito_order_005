@@ -1,14 +1,15 @@
 import json
+import mimetypes
 from urllib.parse import urljoin, urlsplit
 
 from django.conf import settings
+from django.http import FileResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.http import http_date
 
-from .content import PLANT_PRODUCTS
-from .models import Benefit, FAQItem, GalleryItem, OrderStep, Review, SiteConfiguration
+from .models import Benefit, FAQItem, GalleryItem, OrderStep, PlantProduct, Review, SiteConfiguration
 
 
 PAGE_NOINDEX_DIRECTIVES = "noindex, nofollow, noarchive"
@@ -59,6 +60,7 @@ def get_site_last_modified():
         Benefit.objects.filter(is_published=True).order_by("-updated_at").values_list("updated_at", flat=True).first(),
         GalleryItem.objects.filter(is_published=True).order_by("-updated_at").values_list("updated_at", flat=True).first(),
         OrderStep.objects.filter(is_published=True).order_by("-updated_at").values_list("updated_at", flat=True).first(),
+        PlantProduct.objects.filter(is_published=True).order_by("-updated_at").values_list("updated_at", flat=True).first(),
         Review.objects.filter(is_published=True).order_by("-updated_at").values_list("updated_at", flat=True).first(),
         FAQItem.objects.filter(is_published=True).order_by("-updated_at").values_list("updated_at", flat=True).first(),
     ]
@@ -89,11 +91,12 @@ def build_image_entries(config, gallery_items, plant_products):
     )
     raw_images.extend(
         {
-            "loc": build_public_url(static(product.image_path)),
+            "loc": build_public_url(product.display_image_url),
             "caption": product.image_alt,
             "title": product.title,
         }
         for product in plant_products
+        if product.display_image_url
     )
 
     deduped = []
@@ -272,7 +275,7 @@ def build_structured_data(
                             "name": product.title,
                             "alternateName": product.latin_name,
                             "description": product.description,
-                            "image": build_public_url(static(product.image_path)),
+                            "image": build_public_url(product.display_image_url),
                             "category": "Аквариумные растения in vitro",
                             "brand": {
                                 "@type": "Brand",
@@ -355,7 +358,7 @@ def build_home_context(request):
     order_steps = list(OrderStep.objects.filter(is_published=True))
     reviews = list(Review.objects.filter(is_published=True))
     faq_items = list(FAQItem.objects.filter(is_published=True))
-    plant_products = PLANT_PRODUCTS
+    plant_products = list(PlantProduct.objects.filter(is_published=True))
     canonical_url = get_canonical_url()
     page_last_modified = get_site_last_modified()
     seo_context = {
@@ -446,6 +449,18 @@ def sitemap_xml(request):
     return response
 
 
+def favicon(request):
+    config = get_site_configuration()
+    icon = config.favicon or config.logo
+    if icon and icon.name and icon.storage.exists(icon.name):
+        icon.open("rb")
+        content_type, _encoding = mimetypes.guess_type(icon.name)
+        response = FileResponse(icon.file, content_type=content_type or "application/octet-stream")
+        response["Cache-Control"] = "no-cache"
+        return response
+    return HttpResponseRedirect(static("favicon.ico"))
+
+
 def yandex_verification(request):
     return render(
         request,
@@ -454,17 +469,39 @@ def yandex_verification(request):
     )
 
 
+def render_error_page(request, template_name, status_code):
+    response = render(request, template_name, status=status_code)
+    response["X-Robots-Tag"] = PAGE_NOINDEX_DIRECTIVES
+    return response
+
+
 def bad_request(request, exception):
-    return render(request, "400.html", status=400)
+    return render_error_page(request, "400.html", 400)
 
 
 def permission_denied(request, exception):
-    return render(request, "403.html", status=403)
+    return render_error_page(request, "403.html", 403)
 
 
 def page_not_found(request, exception):
-    return render(request, "404.html", status=404)
+    return render_error_page(request, "404.html", 404)
 
 
 def server_error(request):
-    return render(request, "500.html", status=500)
+    return render_error_page(request, "500.html", 500)
+
+
+def error_400_preview(request):
+    return render_error_page(request, "400.html", 400)
+
+
+def error_403_preview(request):
+    return render_error_page(request, "403.html", 403)
+
+
+def error_404_preview(request):
+    return render_error_page(request, "404.html", 404)
+
+
+def error_500_preview(request):
+    return render_error_page(request, "500.html", 500)

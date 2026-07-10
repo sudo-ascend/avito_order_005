@@ -82,7 +82,7 @@ class SiteConfiguration(SingletonModel):
     )
     business_price_range = models.CharField("Ценовой диапазон для schema.org", max_length=32, default="$$")
 
-    social_image = models.ImageField("Изображение для соцсетей", upload_to="site/seo", blank=True, null=True)
+    social_image = models.ImageField("Превью для соцсетей", upload_to="site/seo", blank=True, null=True)
     social_image_alt = models.CharField("Описание изображения для соцсетей", max_length=255, blank=True, default="")
     contact_phone = models.CharField("Телефон для ссылок", max_length=32, default="+79266019274")
     contact_phone_display = models.CharField("Телефон для показа", max_length=32, default="8-926-601-92-74")
@@ -139,7 +139,15 @@ class SiteConfiguration(SingletonModel):
     )
 
     logo = models.ImageField("Логотип сайта", upload_to="site/branding", blank=True, null=True)
+    favicon = models.ImageField(
+        "Favicon",
+        upload_to="site/branding",
+        blank=True,
+        null=True,
+        help_text="Единая иконка для сайта, админки и адреса /favicon.ico.",
+    )
     hero_image = models.ImageField("Изображение первого экрана", upload_to="site/sections", blank=True, null=True)
+    about_image = models.ImageField("Изображение для блока О нас", upload_to="site/sections", blank=True, null=True)
 
     advantages_eyebrow = models.CharField("Преимущества надзаголовок", max_length=120, default="Почему меристема")
     advantages_title = models.TextField("Преимущества заголовок", default="Растения, с которыми удобно работать")
@@ -234,16 +242,28 @@ class SiteConfiguration(SingletonModel):
         return "Конфигурация сайта"
 
     @property
-    def logo_url(self):
+    def favicon_url(self):
+        if self.favicon:
+            return self.favicon.url
         if self.logo:
             return self.logo.url
         return static("favicon.ico")
+
+    @property
+    def logo_url(self):
+        return self.favicon_url
 
     @property
     def hero_image_url(self):
         if self.hero_image:
             return self.hero_image.url
         return static("hero_1.webp")
+
+    @property
+    def about_image_url(self):
+        if self.about_image:
+            return self.about_image.url
+        return static("plants_4.webp")
 
     @property
     def social_image_url(self):
@@ -330,6 +350,34 @@ class GalleryItem(OrderedModel):
     class Meta(OrderedModel.Meta):
         verbose_name = "Изображение галереи"
         verbose_name_plural = "Галерея"
+
+    def __str__(self):
+        return self.title
+
+    @property
+    def display_image_url(self):
+        if self.image:
+            return self.image.url
+        if self.image_path:
+            return static(self.image_path)
+        return ""
+
+
+class PlantProduct(OrderedModel):
+    slug = models.SlugField("Slug", max_length=160, unique=True)
+    title = models.CharField("Название", max_length=255)
+    latin_name = models.CharField("Латинское название", max_length=255, blank=True, default="")
+    description = models.TextField("Описание")
+    image = models.ImageField("Изображение", upload_to="site/plants", blank=True, null=True)
+    image_path = models.CharField("Резервный путь к изображению", max_length=255, blank=True, default="")
+    image_alt = models.CharField("Альтернативный текст", max_length=255, blank=True, default="")
+    image_width = models.PositiveIntegerField("Ширина изображения", default=1122)
+    image_height = models.PositiveIntegerField("Высота изображения", default=1402)
+    image_position = models.CharField("Позиция изображения", max_length=64, blank=True, default="")
+
+    class Meta(OrderedModel.Meta):
+        verbose_name = "Растение каталога"
+        verbose_name_plural = "Каталог растений"
 
     def __str__(self):
         return self.title

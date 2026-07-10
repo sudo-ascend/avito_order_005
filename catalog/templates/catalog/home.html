@@ -43,7 +43,7 @@
         <div class="about-card">
           <picture>
             <img
-              src="{% static 'plants_4.webp' %}"
+              src="{{ config.about_image_url }}"
               alt="Крупный план живого аквариумного растения на коряге"
               width="1000"
               height="1100"
@@ -98,7 +98,7 @@
             <article class="product-card">
               <picture>
                 <img
-                  src="{% static product.image_path %}"
+                  src="{{ product.display_image_url }}"
                   alt="{{ product.image_alt }}"
                   loading="lazy"
                   width="{{ product.image_width }}"

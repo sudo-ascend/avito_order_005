@@ -11,7 +11,7 @@ from django.test import TestCase
 from django.test.utils import override_settings
 from django.urls import reverse
 
-from .models import Benefit, GalleryItem, OrderStep, Review, SiteConfiguration
+from .models import Benefit, GalleryItem, OrderStep, PlantProduct, Review, SiteConfiguration
 
 
 @override_settings(SITE_URL="http://testserver")
@@ -21,6 +21,15 @@ class HomePageTests(TestCase):
         Benefit.objects.create(icon="cup", title="Compact format", text="Easy to place", sort_order=2)
         OrderStep.objects.create(title="Step one", text="Choose plants", sort_order=1)
         OrderStep.objects.create(title="Step two", text="Confirm availability", sort_order=2)
+        PlantProduct.objects.create(
+            slug="anubias-barteri",
+            title="Anubias barteri",
+            latin_name="Anubias barteri var. nana",
+            description="Hardy foreground plant",
+            image_path="plants/plants_4.webp",
+            image_alt="Anubias barteri",
+            sort_order=1,
+        )
 
         response = self.client.get(reverse("catalog:home"))
 
@@ -30,6 +39,9 @@ class HomePageTests(TestCase):
         self.assertContains(response, "Compact format")
         self.assertContains(response, "Step one")
         self.assertContains(response, "Step two")
+        self.assertContains(response, "Anubias barteri")
+        self.assertContains(response, "Hardy foreground plant")
+        self.assertContains(response, 'src="/static/plants/plants_4.webp"', html=False)
 
     def test_home_page_shows_delivery_terms_download_button_when_file_is_configured(self):
         config = SiteConfiguration.objects.first() or SiteConfiguration()
@@ -82,6 +94,14 @@ class HomePageTests(TestCase):
             image_path="gallery_1.webp",
             sort_order=1,
         )
+        PlantProduct.objects.create(
+            slug="test-sitemap-plant",
+            title="Test sitemap plant",
+            description="Plant item for sitemap",
+            image_path="plants/plants_2.webp",
+            image_alt="Test sitemap plant",
+            sort_order=1,
+        )
 
         robots_response = self.client.get(reverse("catalog:robots"))
         sitemap_response = self.client.get(reverse("catalog:sitemap"))
@@ -93,12 +113,31 @@ class HomePageTests(TestCase):
         self.assertEqual(sitemap_response.status_code, 200)
         self.assertContains(sitemap_response, "<loc>http://testserver/</loc>", html=False)
         self.assertContains(sitemap_response, "<image:loc>http://testserver/static/gallery_1.webp</image:loc>", html=False)
+        self.assertContains(
+            sitemap_response,
+            "<image:loc>http://testserver/static/plants/plants_2.webp</image:loc>",
+            html=False,
+        )
 
     def test_yandex_verification_file_is_available(self):
         response = self.client.get(reverse("catalog:yandex_verification"))
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Verification: 4d153c26552f0309")
+
+    def test_error_preview_pages_are_available(self):
+        preview_routes = [
+            ("catalog:error_400_preview", 400),
+            ("catalog:error_403_preview", 403),
+            ("catalog:error_404_preview", 404),
+            ("catalog:error_500_preview", 500),
+        ]
+
+        for route_name, expected_status in preview_routes:
+            with self.subTest(route_name=route_name):
+                response = self.client.get(reverse(route_name))
+                self.assertEqual(response.status_code, expected_status)
+                self.assertEqual(response.headers["X-Robots-Tag"], "noindex, nofollow, noarchive")
 
 
 @override_settings()
@@ -137,6 +176,7 @@ class AdminContentModeTests(TestCase):
         self.assertIn(Benefit, registry)
         self.assertIn(GalleryItem, registry)
         self.assertIn(OrderStep, registry)
+        self.assertIn(PlantProduct, registry)
         self.assertIn(Review, registry)
         self.assertNotIn(get_user_model(), registry)
         self.assertNotIn(Group, registry)
@@ -160,6 +200,14 @@ class AdminContentModeTests(TestCase):
         self.assertContains(response, "Тексты и изображения")
         self.assertContains(response, "Преимущества")
         self.assertContains(response, "Этапы заказа")
+
+    def test_admin_index_contains_plant_catalog_section(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("admin:index"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "/admin/catalog/plantproduct/", html=False)
 
     def test_site_configuration_admin_uses_russian_labels(self):
         SiteConfiguration.objects.get_or_create(pk=1)

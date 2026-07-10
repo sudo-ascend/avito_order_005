@@ -9,7 +9,7 @@ from django.shortcuts import redirect
 from django.urls import path, reverse
 from django.utils.html import format_html
 
-from .models import Benefit, FAQItem, GalleryItem, OrderStep, Review, SiteConfiguration
+from .models import Benefit, FAQItem, GalleryItem, OrderStep, PlantProduct, Review, SiteConfiguration
 
 
 def render_preview(image_url: str, alt: str, *, size: int = 72):
@@ -98,48 +98,23 @@ def update_delivery_terms_file_view(request):
 @admin.register(SiteConfiguration)
 class SiteConfigurationAdmin(admin.ModelAdmin):
     readonly_fields = (
-        "logo_preview",
         "social_image_preview",
         "hero_image_preview",
+        "about_image_preview",
     )
     fieldsets = (
         (
-            "Бренд и SEO",
+            "Бренд и иконки",
             {
                 "fields": (
                     "brand_name",
                     "brand_caption",
                     "site_title",
                     "meta_description",
-                    "meta_robots",
-                    "seo_keywords",
-                    "google_site_verification",
-                    "yandex_site_verification",
-                    "contact_region",
-                    "address_street",
-                    "opening_hours",
-                    "business_price_range",
-                    "logo",
-                    "logo_preview",
+                    "favicon",
                     "social_image",
-                    "social_image_alt",
                     "social_image_preview",
                     "footer_text",
-                )
-            },
-        ),
-        (
-            "Навигация",
-            {
-                "fields": (
-                    "nav_about_label",
-                    "nav_advantages_label",
-                    "nav_plants_label",
-                    "nav_aquariums_label",
-                    "nav_reviews_label",
-                    "nav_contacts_label",
-                    "nav_faq_label",
-                    "header_contact_button_text",
                 )
             },
         ),
@@ -169,6 +144,8 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
                     "about_title",
                     "about_body_1",
                     "about_body_2",
+                    "about_image",
+                    "about_image_preview",
                     "about_panel_title",
                     "about_panel_text",
                 )
@@ -188,6 +165,7 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
         (
             "Растения",
             {
+                "description": "Карточки каталога редактируются отдельно в списке «Каталог растений».",
                 "fields": (
                     "plants_eyebrow",
                     "plants_title",
@@ -249,15 +227,15 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
-    def logo_preview(self, obj):
-        return render_preview(obj.logo_url, obj.brand_name)
-
-    logo_preview.short_description = "Превью логотипа"
-
     def hero_image_preview(self, obj):
         return render_preview(obj.hero_image_url, obj.hero_title, size=180)
 
     hero_image_preview.short_description = "Превью первого экрана"
+
+    def about_image_preview(self, obj):
+        return render_preview(obj.about_image_url, obj.about_title, size=180)
+
+    about_image_preview.short_description = "Превью блока О нас"
 
     def social_image_preview(self, obj):
         return render_preview(obj.social_image_url, obj.social_image_alt or obj.site_title, size=180)
@@ -320,6 +298,48 @@ class OrderStepAdmin(admin.ModelAdmin):
     ordering = ("sort_order", "id")
     fields = ("title", "text", "sort_order", "is_published")
 
+
+@admin.register(PlantProduct)
+class PlantProductAdmin(admin.ModelAdmin):
+    list_display = ("image_preview", "title", "latin_name", "sort_order", "is_published")
+    list_editable = ("sort_order", "is_published")
+    ordering = ("sort_order", "id")
+    readonly_fields = ("image_preview_large",)
+    fieldsets = (
+        (
+            "Содержимое",
+            {
+                "fields": (
+                    "slug",
+                    "title",
+                    "latin_name",
+                    "description",
+                    "image",
+                    "image_preview_large",
+                    "image_alt",
+                )
+            },
+        ),
+        (
+            "Публикация",
+            {
+                "fields": (
+                    "sort_order",
+                    "is_published",
+                )
+            },
+        ),
+    )
+
+    def image_preview(self, obj):
+        return render_preview(obj.display_image_url, obj.image_alt or obj.title, size=52)
+
+    image_preview.short_description = "Фото"
+
+    def image_preview_large(self, obj):
+        return render_preview(obj.display_image_url, obj.image_alt or obj.title, size=220)
+
+    image_preview_large.short_description = "Превью"
 
 
 @admin.register(FAQItem)

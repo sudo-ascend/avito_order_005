@@ -27,8 +27,8 @@
     <link rel="sitemap" type="application/xml" title="Sitemap" href="{{ seo.sitemap_url }}" />
 <link rel="manifest" href="{% static 'site.webmanifest' %}" />
     <link rel="preload" as="image" href="{{ seo.hero_image_url }}" />
-    <link rel="icon" href="{{ config.logo_url }}" />
-    <link rel="apple-touch-icon" href="{{ config.logo_url }}" />
+    <link rel="icon" href="{% url 'site_favicon' %}" />
+    <link rel="apple-touch-icon" href="{% url 'site_favicon' %}" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="ru_RU" />
     <meta property="og:site_name" content="{{ config.brand_name }}" />
@@ -70,16 +70,16 @@
         </span>
       </a>
       <nav class="main-nav" data-nav aria-label="Основная навигация">
-        <a href="{% url 'catalog:home' %}#about">{{ config.nav_about_label }}</a>
-        <a href="{% url 'catalog:home' %}#advantages">{{ config.nav_advantages_label }}</a>
-        <a href="{% url 'catalog:home' %}#plants">{{ config.nav_plants_label }}</a>
-        <a href="{% url 'catalog:home' %}#aquariums">{{ config.nav_aquariums_label }}</a>
-        <a href="{% url 'catalog:home' %}#reviews">{{ config.nav_reviews_label }}</a>
-        {% if faq_items %}<a href="{% url 'catalog:home' %}#faq">{{ config.nav_faq_label }}</a>{% endif %}
-        <a href="{% url 'catalog:home' %}#contacts">{{ config.nav_contacts_label }}</a>
+        <a href="{% url 'catalog:home' %}#about">О нас</a>
+        <a href="{% url 'catalog:home' %}#advantages">Преимущества</a>
+        <a href="{% url 'catalog:home' %}#plants">Растения</a>
+        <a href="{% url 'catalog:home' %}#aquariums">Аквариумы</a>
+        <a href="{% url 'catalog:home' %}#reviews">Отзывы</a>
+        {% if faq_items %}<a href="{% url 'catalog:home' %}#faq">FAQ</a>{% endif %}
+        <a href="{% url 'catalog:home' %}#contacts">Контакты</a>
       </nav>
       <div class="header-actions">
-        <a class="button button--small button--glass header-contact-link" href="{% url 'catalog:home' %}#contacts">{{ config.header_contact_button_text }}</a>
+        <a class="button button--small button--glass header-contact-link" href="{% url 'catalog:home' %}#contacts">Связаться</a>
         <button class="nav-toggle" type="button" data-nav-toggle aria-label="Открыть меню" aria-expanded="false">
           <span></span>
           <span></span>
@@ -115,13 +115,13 @@
           <p>{{ config.footer_text }}</p>
         </div>
         <nav class="footer-nav" aria-label="Навигация в подвале">
-          <a href="{% url 'catalog:home' %}#about">{{ config.nav_about_label }}</a>
-          <a href="{% url 'catalog:home' %}#plants">{{ config.nav_plants_label }}</a>
-          <a href="{% url 'catalog:home' %}#advantages">{{ config.nav_advantages_label }}</a>
-          <a href="{% url 'catalog:home' %}#aquariums">{{ config.nav_aquariums_label }}</a>
-          <a href="{% url 'catalog:home' %}#reviews">{{ config.nav_reviews_label }}</a>
-          {% if faq_items %}<a href="{% url 'catalog:home' %}#faq">{{ config.nav_faq_label }}</a>{% endif %}
-          <a href="{% url 'catalog:home' %}#contacts">{{ config.nav_contacts_label }}</a>
+          <a href="{% url 'catalog:home' %}#about">О нас</a>
+          <a href="{% url 'catalog:home' %}#plants">Растения</a>
+          <a href="{% url 'catalog:home' %}#advantages">Преимущества</a>
+          <a href="{% url 'catalog:home' %}#aquariums">Аквариумы</a>
+          <a href="{% url 'catalog:home' %}#reviews">Отзывы</a>
+          {% if faq_items %}<a href="{% url 'catalog:home' %}#faq">FAQ</a>{% endif %}
+          <a href="{% url 'catalog:home' %}#contacts">Контакты</a>
         </nav>
       </div>
     </footer>
