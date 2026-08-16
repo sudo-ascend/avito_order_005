@@ -96,16 +96,15 @@
         <div class="product-grid">
           {% for product in plant_products %}
             <article class="product-card">
-              <picture>
-                <img
-                  src="{{ product.display_image_url }}"
-                  alt="{{ product.image_alt }}"
-                  loading="lazy"
-                  width="{{ product.image_width }}"
-                  height="{{ product.image_height }}"
-                  {% if product.image_position %}style="object-position: {{ product.image_position }};"{% endif %}
-                />
-              </picture>
+                <picture>
+                  <img
+                    src="{{ product.display_image_url }}"
+                    alt="{{ product.image_alt }}"
+                    loading="lazy"
+                    width="1122"
+                    height="1402"
+                  />
+                </picture>
               <div class="product-card__body">
                 <div>
                   <h3>{{ product.title }}</h3>

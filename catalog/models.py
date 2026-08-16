@@ -371,9 +371,6 @@ class PlantProduct(OrderedModel):
     image = models.ImageField("Изображение", upload_to="site/plants", blank=True, null=True)
     image_path = models.CharField("Резервный путь к изображению", max_length=255, blank=True, default="")
     image_alt = models.CharField("Альтернативный текст", max_length=255, blank=True, default="")
-    image_width = models.PositiveIntegerField("Ширина изображения", default=1122)
-    image_height = models.PositiveIntegerField("Высота изображения", default=1402)
-    image_position = models.CharField("Позиция изображения", max_length=64, blank=True, default="")
 
     class Meta(OrderedModel.Meta):
         verbose_name = "Растение каталога"
